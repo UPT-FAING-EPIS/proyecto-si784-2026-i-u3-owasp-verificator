@@ -1,5 +1,23 @@
 # OWASP Verificator
 
+## Enlace 
+
+http://38.250.116.71:8000
+
+## Extensión para VS Code y Open VSX
+
+La extensión **OWASP Verificator** está disponible en diferentes marketplaces para facilitar su instalación en distintos entornos de desarrollo compatibles con Visual Studio Code.
+
+Puedes instalarla directamente desde:
+
+- 🔷 Visual Studio Code Marketplace: https://marketplace.visualstudio.com/items?itemName=Gerardo95.owasp-verificator  
+- 🌐 Open VSX Registry (VSCodium, Theia y otros): https://open-vsx.org/extension/Gerardo95/owasp-verificator  
+
+También puedes instalarla mediante terminal:
+
+```bash
+code --install-extension Gerardo95.owasp-verificator
+
 **OWASP Verificator** es un ecosistema de herramientas diseñadas para evaluar y mejorar el cumplimiento de las directrices de seguridad de **OWASP Top 10** en tu código de forma ágil, simple y ampliable.
 
 El proyecto consta de dos componentes principales:
