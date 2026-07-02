@@ -15,7 +15,6 @@ Puedes instalarla directamente desde:
 
 También puedes instalarla mediante terminal:
 
-```bash
 code --install-extension Gerardo95.owasp-verificator
 
 **OWASP Verificator** es un ecosistema de herramientas diseñadas para evaluar y mejorar el cumplimiento de las directrices de seguridad de **OWASP Top 10** en tu código de forma ágil, simple y ampliable.
