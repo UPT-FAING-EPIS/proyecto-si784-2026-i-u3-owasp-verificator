@@ -1,0 +1,67 @@
+name: Pruebas Unitarias
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    name: Pruebas Unitarias con Pytest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          pip install -r requirements.txt
+          pip install pytest-cov
+
+      - name: Ejecutar pruebas unitarias
+        env:
+          APP_ENV: test
+        run: |
+          python -m pytest tests/test_scanner.py tests/test_api.py \
+            --cov=app \
+            --cov-report=xml:coverage.xml \
+            --cov-report=html:htmlcov/ \
+            --cov-report=term-missing \
+            -v \
+            --tb=short \
+            --junitxml=unit-results.xml
+
+      - name: Publicar resumen de pruebas
+        if: always()
+        run: |
+          echo "## 🧪 Resultados de Pruebas Unitarias" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f unit-results.xml ]; then
+            TESTS=$(grep -oP 'tests="\K[^"]+' unit-results.xml || echo "0")
+            FAILURES=$(grep -oP 'failures="\K[^"]+' unit-results.xml || echo "0")
+            ERRORS=$(grep -oP 'errors="\K[^"]+' unit-results.xml || echo "0")
+            echo "| Métrica | Valor |" >> $GITHUB_STEP_SUMMARY
+            echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+            echo "| Tests ejecutados | $TESTS |" >> $GITHUB_STEP_SUMMARY
+            echo "| Fallos | $FAILURES |" >> $GITHUB_STEP_SUMMARY
+            echo "| Errores | $ERRORS |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Subir reporte de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-unitarias
+          path: |
+            coverage.xml
+            htmlcov/
+            unit-results.xml
+          retention-days: 15

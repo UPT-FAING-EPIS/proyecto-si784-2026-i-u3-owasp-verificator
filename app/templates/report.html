@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block content %}
+<link rel="stylesheet" href="/static/css/report.css?v={{ request.app.state.asset_version }}">
+
+
+<section class="hero">
+    <div>
+        <p class="eyebrow">Análisis de Seguridad #{{ scan.id }}</p>
+        <h2>Reporte de Vulnerabilidades</h2>
+        <p>Generado: {{ scan.created_at.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+        <p style="font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 6px;">Puntuación General</p>
+        <div class="score-circle-wrap {% if scan.score >= 80 %}score-high{% elif scan.score >= 50 %}score-medium{% else %}score-low{% endif %}">
+            <svg class="score-ring" width="120" height="120" viewBox="0 0 120 120">
+                <circle class="score-ring-bg" cx="60" cy="60" r="50" stroke-width="8"/>
+                <circle class="score-ring-bar" cx="60" cy="60" r="50" stroke-width="8" stroke-dasharray="314" stroke-dashoffset="{{ 314 - (314 * scan.score / 100) }}"/>
+            </svg>
+            <div class="score-value">{{ scan.score }}</div>
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px;">
+            <a href="/reports/{{ scan.id }}/export-pdf" class="button button-secondary" style="padding: 6px 12px; font-size: 0.8rem; display: inline-flex; align-items: center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                <span>Exportar PDF</span>
+            </a>
+            <a href="/reports/{{ scan.id }}/export-json" class="button button-secondary" style="padding: 6px 12px; font-size: 0.8rem; display: inline-flex; align-items: center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                <span>Exportar JSON</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Summary Statistics Section -->
+<section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div class="card" style="margin-bottom: 0; padding: 18px; text-align: center;">
+        <p style="color: var(--muted); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px; font-weight: 700;">Hallazgos Totales</p>
+        <p style="font-size: 2rem; font-weight: 800; color: #ffffff; font-family: var(--font-title);">{{ scan.findings|length }}</p>
+    </div>
+    
+    <div class="card" style="margin-bottom: 0; padding: 18px; text-align: center;">
+        <p style="color: var(--muted); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--danger); display: inline-block;"></span>
+            <span>Severidad Alta</span>
+        </p>
+        <p style="font-size: 2rem; font-weight: 800; color: var(--danger); font-family: var(--font-title);">{{ scan.findings|selectattr('severity', 'equalto', 'high')|list|length }}</p>
+    </div>
+    
+    <div class="card" style="margin-bottom: 0; padding: 18px; text-align: center;">
+        <p style="color: var(--muted); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--warning); display: inline-block;"></span>
+            <span>Severidad Media</span>
+        </p>
+        <p style="font-size: 2rem; font-weight: 800; color: var(--warning); font-family: var(--font-title);">{{ scan.findings|selectattr('severity', 'equalto', 'medium')|list|length }}</p>
+    </div>
+    
+    <div class="card" style="margin-bottom: 0; padding: 18px; text-align: center;">
+        <p style="color: var(--muted); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--success); display: inline-block;"></span>
+            <span>Severidad Baja</span>
+        </p>
+        <p style="font-size: 2rem; font-weight: 800; color: var(--success); font-family: var(--font-title);">{{ scan.findings|selectattr('severity', 'equalto', 'low')|list|length }}</p>
+    </div>
+</section>
+
+<!-- Target Information Card -->
+<section class="card">
+    <h3>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <span>Objetivo del Análisis</span>
+    </h3>
+    <div style="background: rgba(12, 20, 38, 0.4); border: 1px solid var(--panel-border); padding: 18px; border-radius: var(--radius-sm); margin-top: 14px;">
+        <p style="margin: 0 0 4px 0; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Tipo de escaneo:</p>
+        <p style="margin: 0 0 16px 0; font-weight: 700; color: #ffffff; font-size: 1.05rem; text-transform: uppercase; font-family: var(--font-title);">{{ scan.target_type }}</p>
+        <p style="margin: 0 0 6px 0; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Valor escaneado:</p>
+        <div class="code-block" style="max-height: 120px; font-size: 0.8rem; color: var(--text); padding: 12px; background: rgba(0, 0, 0, 0.25);">{{ scan.target_value }}</div>
+    </div>
+</section>
+
+<!-- Security Findings list -->
+<section class="card">
+    <h3>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        <span>Vulnerabilidades Detectadas</span>
+    </h3>
+    <div style="margin-top: 16px;">
+        {% if scan.findings %}
+        <ul class="findings" style="display: flex; flex-direction: column; gap: 16px;">
+            {% for finding in scan.findings %}
+            <li class="card {% if finding.severity == 'high' %}high-risk{% elif finding.severity == 'medium' %}medium-risk{% else %}low-risk{% endif %}" style="margin-bottom: 0; padding: 0;">
+                <details class="finding-details" open>
+                    <summary>
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+                            <div>
+                                <span style="font-family: var(--font-code); font-size: 0.75rem; color: var(--muted); display: block; margin-bottom: 2px; font-weight: 600;">{{ finding.rule_id }}</span>
+                                <strong style="font-size: 1.05rem; color: #ffffff; font-family: var(--font-title); font-weight: 700;">{{ finding.title }}</strong>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
+                                {% if finding.severity == 'high' %}
+                                    <span class="severity-high">ALTA</span>
+                                {% elif finding.severity == 'medium' %}
+                                    <span class="severity-medium">MEDIA</span>
+                                {% else %}
+                                    <span class="severity-low">BAJA</span>
+                                {% endif %}
+                                <span class="finding-penalty">-{{ finding.penalty }} pts</span>
+                                <span class="arrow-icon">▼</span>
+                            </div>
+                        </div>
+                    </summary>
+                    <div style="padding: 20px; border-top: 1px solid var(--panel-border); background: rgba(12, 20, 38, 0.2);">
+                        <div style="margin-bottom: 16px; padding: 14px; background: rgba(99, 102, 241, 0.04); border-left: 3px solid var(--accent); border-radius: var(--radius-sm);">
+                            <strong style="color: var(--accent); display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 0.9rem; font-family: var(--font-title); font-weight: 700;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                <span>Descripción de la Vulnerabilidad</span>
+                            </strong>
+                            <p style="margin: 0; color: var(--text-light); line-height: 1.5; font-size: 0.925rem;">{{ finding.description }}</p>
+                            <div style="margin-top: 10px;">
+                                {% set wiki_anchor = "A01" %}
+                                {% if finding.rule_id in ['OWASP-A01-NO-AUTH', 'OWASP-A01-HARDCODED-ROLE', 'OWASP-A01-OPEN-CIDR', 'OWASP-A02-HARDCODED-SECRET', 'OWASP-A02-WEAK-HASH', 'OWASP-A03-SQLI', 'OWASP-A03-XSS', 'OWASP-A03-PATH-TRAVERSAL', 'OWASP-A03-DYNAMIC-SQL', 'OWASP-A04-TODO-SECURITY', 'OWASP-A05-DEBUG-ACTIVE', 'OWASP-A05-INSECURE-COOKIE', 'OWASP-A05-DOCKER-ROOT', 'OWASP-A05-K8S-PRIV-ESC', 'OWASP-A06-DEP-VULN', 'OWASP-A07-WEAK-PASS-CHECK', 'OWASP-A07-WEAK-SESSION', 'OWASP-A08-UNSAFE-DESERIALIZATION', 'OWASP-A08-UNSIGNED-JWT', 'OWASP-A09-SILENT-EXCEPT', 'OWASP-A10-SSRF-REQUESTS'] %}
+                                    {% set wiki_anchor = finding.rule_id %}
+                                {% elif finding.rule_id.startswith('OWASP-A') %}
+                                    {% set wiki_anchor = finding.rule_id[6:9] %}
+                                {% endif %}
+                                <a href="/owasp#{{ wiki_anchor }}" class="button button-secondary" style="padding: 4px 10px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 6px; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3);">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                                    <span>Ver explicación en Wiki OWASP</span>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        {% if finding.evidence %}
+                        <div style="margin-bottom: 16px;">
+                            <strong style="color: var(--text-light); display: block; margin-bottom: 8px; font-size: 0.9rem; font-family: var(--font-title); font-weight: 700;">📄 Código / Evidencia Detectada:</strong>
+                            <pre class="code-block">{{ finding.evidence }}</pre>
+                        </div>
+                        {% endif %}
+                        
+                        {% if finding.remediation %}
+                        <div class="remediation-box">
+                            <strong class="remediation-box-title">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                <span>Solución Recomendada:</span>
+                            </strong>
+                            <div class="remediation-box-content">{{ finding.remediation }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </details>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div style="padding: 36px; background: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: var(--radius-md); text-align: center;">
+            <p style="font-size: 1.25rem; color: var(--success); font-weight: 700; font-family: var(--font-title); margin: 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <span>¡No se encontraron vulnerabilidades!</span>
+            </p>
+            <p style="color: var(--muted); margin-top: 8px; font-size: 0.9rem;">Este objetivo cumple correctamente con las directrices de seguridad OWASP.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Recommendations -->
+<section class="card">
+    <h3>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>Recomendaciones Generales de Seguridad</span>
+    </h3>
+    <ul style="margin-top: 16px; margin-left: 20px; color: var(--text-light); line-height: 1.8; font-size: 0.925rem;">
+        <li>Realiza análisis estáticos y dinámicos regulares en cada ciclo de integración.</li>
+        <li>Mantén las dependencias externas (paquetes npm, pip, etc.) completamente actualizadas.</li>
+        <li>Sanitiza y valida las entradas de usuario en todas las fronteras de la aplicación.</li>
+        <li>Utiliza variables de entorno para llaves API y contraseñas; jamás los guardes en el repositorio.</li>
+        <li>Configura cabeceras HTTP robustas de seguridad en el servidor de producción.</li>
+        <li>Visita la <a href="/owasp" style="color: var(--accent-2); font-weight: 600; text-decoration: none;">Wiki OWASP</a> integrada para aprender mejores prácticas de codificación.</li>
+    </ul>
+</section>
+{% endblock %}

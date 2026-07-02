@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="hero">
+    <div>
+        <p class="eyebrow">Resumen de Seguridad</p>
+        <h2>Dashboard</h2>
+        <p>Auditoría y postura de cumplimiento del código y servicios en tiempo real.</p>
+    </div>
+    <a class="button" href="/analyze">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>Nuevo Análisis</span>
+    </a>
+</section>
+
+<!-- Quick Actions Grid -->
+<section class="card" style="margin-bottom: 28px;">
+    <h3>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span>Accesos Rápidos</span>
+    </h3>
+    <div class="card-grid" style="margin-top: 16px;">
+        {% if current_user %}
+        <a href="/dashboard" class="card" style="margin-bottom: 0; padding: 20px; background: rgba(99, 102, 241, 0.02); text-decoration: none;">
+            <strong style="color: var(--accent); font-family: var(--font-title); font-size: 1.05rem; display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>Mi Panel de Seguridad</span>
+            </strong>
+            <p style="font-size: 0.875rem; color: var(--text-light);">Accede a tu panel personal, consulta tus reportes, estadísticas y gestiona tokens de integración.</p>
+        </a>
+        {% else %}
+        <a href="/login" class="card" style="margin-bottom: 0; padding: 20px; background: rgba(99, 102, 241, 0.02); text-decoration: none;">
+            <strong style="color: var(--accent); font-family: var(--font-title); font-size: 1.05rem; display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                <span>Iniciar Sesión / Registrarse</span>
+            </strong>
+            <p style="font-size: 0.875rem; color: var(--text-light);">Accede a tu panel personal, consulta tus reportes, estadísticas y gestiona tus tokens de API.</p>
+        </a>
+        {% endif %}
+        
+        <a href="/owasp" class="card" style="margin-bottom: 0; padding: 20px; background: rgba(245, 158, 11, 0.02); text-decoration: none;">
+            <strong style="color: var(--warning); font-family: var(--font-title); font-size: 1.05rem; display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <span>Wiki OWASP Top 10</span>
+            </strong>
+            <p style="font-size: 0.875rem; color: var(--text-light);">Referencia completa de las 10 vulnerabilidades de seguridad más críticas según OWASP.</p>
+        </a>
+        
+        <a href="/docs" class="card" style="margin-bottom: 0; padding: 20px; background: rgba(14, 165, 233, 0.02); text-decoration: none;">
+            <strong style="color: var(--accent-2); font-family: var(--font-title); font-size: 1.05rem; display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                <span>Swagger / OpenAPI</span>
+            </strong>
+            <p style="font-size: 0.875rem; color: var(--text-light);">Consola de API interactiva para pruebas y documentación técnica completa.</p>
+        </a>
+    </div>
+</section>
+
+<!-- Statistics Grid -->
+<section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 20px; margin-bottom: 32px;">
+    <div class="card" style="margin-bottom: 0; border: 1px solid var(--panel-border);">
+        <p style="color: var(--muted); font-size: 0.725rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">Análisis Realizados</p>
+        <p style="font-size: 2.25rem; font-weight: 700; color: var(--text); font-family: var(--font-title);">{{ stats.total_scans }}</p>
+        <p style="color: var(--muted); margin-top: 4px; font-size: 0.8rem;">Escaneos totales registrados</p>
+    </div>
+    
+    <div class="card" style="margin-bottom: 0; border: 1px solid var(--panel-border);">
+        <p style="color: var(--muted); font-size: 0.725rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">Score Promedio</p>
+        <p style="font-size: 2.25rem; font-weight: 700; color: var(--text); font-family: var(--font-title);">{{ stats.avg_score }}/100</p>
+        <p style="color: var(--muted); margin-top: 4px; font-size: 0.8rem;">Nivel de cumplimiento global</p>
+    </div>
+    
+    <div class="card" style="margin-bottom: 0; border: 1px solid var(--panel-border);">
+        <p style="color: var(--muted); font-size: 0.725rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">Críticos (High)</p>
+        <p style="font-size: 2.25rem; font-weight: 700; color: var(--text); font-family: var(--font-title);">{{ stats.high_severity }}</p>
+        <p style="color: var(--muted); margin-top: 4px; font-size: 0.8rem;">Vulnerabilidades de alta severidad</p>
+    </div>
+    
+    <div class="card" style="margin-bottom: 0; border: 1px solid var(--panel-border);">
+        <p style="color: var(--muted); font-size: 0.725rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">Total Hallazgos</p>
+        <p style="font-size: 2.25rem; font-weight: 700; color: var(--text); font-family: var(--font-title);">{{ stats.total_findings }}</p>
+        <p style="color: var(--muted); margin-top: 4px; font-size: 0.8rem;">Vulnerabilidades detectadas totales</p>
+    </div>
+</section>
+
+{% if stats.total_scans > 0 %}
+<!-- Charts Section -->
+<section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 20px; margin-bottom: 32px;">
+    <div class="card" style="margin-bottom: 0;">
+        <h3 style="margin-bottom: 20px; font-family: var(--font-title); font-weight: 600; color: var(--text);">Historial de Puntuación</h3>
+        <div style="position: relative; height: 260px;">
+            <canvas id="scoreHistoryChart"></canvas>
+        </div>
+    </div>
+    <div class="card" style="margin-bottom: 0;">
+        <h3 style="margin-bottom: 20px; font-family: var(--font-title); font-weight: 600; color: var(--text);">Distribución de Severidades</h3>
+        <div style="position: relative; height: 260px;">
+            <canvas id="severityDoughnutChart"></canvas>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- System Capabilities -->
+<section class="card">
+    <h3>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Módulos de Auditoría OWASP</span>
+    </h3>
+    <p style="margin-bottom: 24px; color: var(--text-light);">OWASP Verificator ejecuta auditorías de seguridad automáticas sobre el código fuente local, URLs de producción y repositorios de Git para identificar riesgos del Top 10.</p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 20px;">
+        <div style="padding: 20px; background: rgba(99, 102, 241, 0.02); border-radius: var(--radius-sm); border: 1px solid var(--panel-border);">
+            <strong style="color: var(--text); display: block; font-size: 0.95rem; margin-bottom: 6px; font-family: var(--font-title);">Detección de Secretos</strong>
+            <p style="font-size: 0.85rem; color: var(--muted);">Localiza contraseñas, tokens privados, certificados y claves de API expuestas en el código fuente.</p>
+        </div>
+        <div style="padding: 20px; background: rgba(239, 68, 68, 0.02); border-radius: var(--radius-sm); border: 1px solid var(--panel-border);">
+            <strong style="color: var(--text); display: block; font-size: 0.95rem; margin-bottom: 6px; font-family: var(--font-title);">Funciones Peligrosas</strong>
+            <p style="font-size: 0.85rem; color: var(--muted);">Identifica el uso de llamadas dinámicas inseguras como eval() o ejecución de subprocesos no saneados.</p>
+        </div>
+        <div style="padding: 20px; background: rgba(16, 185, 129, 0.02); border-radius: var(--radius-sm); border: 1px solid var(--panel-border);">
+            <strong style="color: var(--text); display: block; font-size: 0.95rem; margin-bottom: 6px; font-family: var(--font-title);">Saneamiento de Entradas</strong>
+            <p style="font-size: 0.85rem; color: var(--muted);">Inspecciona flujos de datos expuestos a inyecciones de código, SQL Injection y Cross-Site Scripting (XSS).</p>
+        </div>
+        <div style="padding: 20px; background: rgba(245, 158, 11, 0.02); border-radius: var(--radius-sm); border: 1px solid var(--panel-border);">
+            <strong style="color: var(--text); display: block; font-size: 0.95rem; margin-bottom: 6px; font-family: var(--font-title);">Seguridad en Contenedores</strong>
+            <p style="font-size: 0.85rem; color: var(--muted);">Audita Dockerfiles para validar el principio de menor privilegio, puertos no seguros y paquetes desactualizados.</p>
+        </div>
+    </div>
+    
+    <div style="margin-top: 24px; padding: 16px; background: rgba(99, 102, 241, 0.04); border-radius: var(--radius-sm); border: 1px solid var(--panel-border); display: flex; gap: 12px; align-items: center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <p style="font-size: 0.875rem; color: var(--text-light); margin: 0;"><strong>Para comenzar:</strong> Realiza tu primer escaneo estático o dinámico haciendo clic en <a href="/analyze" style="color: var(--accent-2); text-decoration: none; font-weight: 600;">Nuevo análisis</a> en la barra superior.</p>
+    </div>
+</section>
+
+{% if stats.total_scans > 0 %}
+<div id="scans-data-source" data-scans='[
+    {% for scan in scans|reverse %}
+    {
+        "id": {{ scan.id }},
+        "date": "{{ scan.created_at.strftime("%d/%m") }}",
+        "score": {{ scan.score }},
+        "target_type": "{{ scan.target_type }}",
+        "findings_count": {{ scan.findings|length }},
+        "high": {{ scan.findings|selectattr("severity", "equalto", "high")|list|length }},
+        "medium": {{ scan.findings|selectattr("severity", "equalto", "medium")|list|length }},
+        "low": {{ scan.findings|selectattr("severity", "equalto", "low")|list|length }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+]' style="display: none;"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const sourceEl = document.getElementById("scans-data-source");
+        const scansData = JSON.parse(sourceEl.dataset.scans || "[]");
+
+        if (scansData.length === 0) return;
+
+        // Resolve theme colors dynamically
+        const isLightTheme = document.body.classList.contains("light-theme");
+        const gridColor = isLightTheme ? '#d0d7de' : '#243249';
+        const textColor = isLightTheme ? '#334155' : '#cbd5e1';
+        const pointBorder = isLightTheme ? '#ffffff' : '#151c2c';
+
+        // 1. Line Chart: Score History
+        const scoreCtx = document.getElementById('scoreHistoryChart').getContext('2d');
+        const scoreLabels = scansData.map(s => `#${s.id} (${s.date})`);
+        const scoreValues = scansData.map(s => s.score);
+
+        const gradient = scoreCtx.createLinearGradient(0, 0, 0, 240);
+        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.15)');
+        gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
+        const scoreChart = new Chart(scoreCtx, {
+            type: 'line',
+            data: {
+                labels: scoreLabels,
+                datasets: [{
+                    label: 'Score',
+                    data: scoreValues,
+                    borderColor: '#6366f1',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#6366f1',
+                    pointBorderColor: pointBorder,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.15
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100,
+                        grid: { color: gridColor },
+                        ticks: { color: textColor, font: { family: 'Inter', size: 11 } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: textColor, font: { family: 'Inter', size: 11 } }
+                    }
+                }
+            }
+        });
+
+        // 2. Doughnut Chart: Severity Distribution
+        let totalHigh = 0;
+        let totalMedium = 0;
+        let totalLow = 0;
+        scansData.forEach(s => {
+            totalHigh += s.high;
+            totalMedium += s.medium;
+            totalLow += s.low;
+        });
+
+        const severityCtx = document.getElementById('severityDoughnutChart').getContext('2d');
+        const severityChart = new Chart(severityCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Alta (High)', 'Media (Medium)', 'Baja (Low)'],
+                datasets: [{
+                    data: [totalHigh, totalMedium, totalLow],
+                    backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
+                    borderColor: pointBorder,
+                    borderWidth: 2,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: textColor,
+                            font: { family: 'Inter', size: 11 }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Listen for theme switch to dynamically update chart styles
+        const themeToggleBtn = document.getElementById("themeToggleBtn");
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener("click", () => {
+                setTimeout(() => {
+                    const isLight = document.body.classList.contains("light-theme");
+                    const nextGridColor = isLight ? '#d0d7de' : '#243249';
+                    const nextTextColor = isLight ? '#334155' : '#cbd5e1';
+                    const nextPointBorder = isLight ? '#ffffff' : '#151c2c';
+
+                    // Update Score Chart
+                    scoreChart.options.scales.y.grid.color = nextGridColor;
+                    scoreChart.options.scales.y.ticks.color = nextTextColor;
+                    scoreChart.options.scales.x.ticks.color = nextTextColor;
+                    scoreChart.data.datasets[0].pointBorderColor = nextPointBorder;
+                    scoreChart.update();
+
+                    // Update Severity Chart
+                    severityChart.options.plugins.legend.labels.color = nextTextColor;
+                    severityChart.data.datasets[0].borderColor = nextPointBorder;
+                    severityChart.update();
+                }, 50);
+            });
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

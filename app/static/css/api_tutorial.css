@@ -1,0 +1,408 @@
+/* Integration Stylesheet - Cruip Mosaic Style */
+
+.ig-wrap {
+    font-family: var(--font-body);
+}
+
+.ig-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    margin-bottom: 24px;
+}
+
+.ig-tab-btn {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: var(--font-body);
+}
+
+.ig-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text);
+}
+
+.ig-tab-btn.active {
+    background: rgba(99, 102, 241, 0.08);
+    color: var(--text);
+}
+
+.ig-tab-btn svg {
+    color: var(--muted);
+    transition: var(--transition);
+}
+
+.ig-tab-btn.active svg {
+    color: var(--accent);
+}
+
+/* Tab Panels */
+.ig-panel {
+    display: none;
+    animation: igFade 0.2s ease-out;
+}
+
+.ig-panel.active {
+    display: block;
+}
+
+@keyframes igFade {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Steps Cards */
+.ig-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.ig-step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    transition: var(--transition);
+}
+
+.ig-step:hover {
+    border-color: var(--muted);
+}
+
+.ig-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.ig-step-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.ig-step-title {
+    font-family: var(--font-title);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+
+.ig-step-desc {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    line-height: 1.55;
+    margin-bottom: 8px;
+}
+
+.ig-step-desc strong {
+    color: var(--text);
+}
+
+/* Code block layout */
+.ig-code-wrap {
+    position: relative;
+    margin-top: 12px;
+}
+
+.ig-code-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0b0f19;
+    border: 1px solid var(--panel-border);
+    border-bottom: none;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.ig-code-lang {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+}
+
+.ig-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    color: var(--text-light);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.725rem;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: var(--font-body);
+}
+
+.ig-copy-btn:hover {
+    background: rgba(99, 102, 241, 0.1);
+    color: #ffffff;
+}
+
+.ig-copy-btn.ok {
+    color: var(--success);
+    border-color: var(--success);
+}
+
+.ig-code-pre {
+    background: #0b0f19;
+    border: 1px solid var(--panel-border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    padding: 12px 16px;
+    overflow-x: auto;
+    font-family: var(--font-code);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--accent-2);
+    margin: 0;
+}
+
+/* API info boxes */
+.ig-info, .ig-warn, .ig-success {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-bottom: 16px;
+    border: 1px solid var(--panel-border);
+}
+
+.ig-info {
+    background: rgba(99, 102, 241, 0.02);
+    border-color: rgba(99, 102, 241, 0.15);
+}
+
+.ig-warn {
+    background: rgba(245, 158, 11, 0.02);
+    border-color: rgba(245, 158, 11, 0.15);
+}
+
+.ig-success {
+    background: rgba(16, 185, 129, 0.02);
+    border-color: rgba(16, 185, 129, 0.15);
+}
+
+.ig-info strong, .ig-warn strong {
+    color: var(--text);
+}
+
+/* Skills grid */
+.ig-skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.ig-skill-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    transition: var(--transition);
+}
+
+.ig-skill-card:hover {
+    border-color: var(--muted);
+}
+
+.ig-skill-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.ig-skill-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    background: #0b0f19;
+}
+
+.ig-skill-name {
+    font-family: var(--font-code);
+    font-size: 0.775rem;
+    font-weight: 600;
+    color: var(--accent-2);
+}
+
+.ig-method-pill {
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: auto;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.ig-method-post {
+    background: rgba(99, 102, 241, 0.1);
+    color: #818cf8;
+}
+
+.ig-method-get {
+    background: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+}
+
+.ig-skill-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.ig-skill-endpoint {
+    font-family: var(--font-code);
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--panel-border);
+}
+
+/* Section titles */
+.ig-section-title {
+    font-family: var(--font-title);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ig-divider {
+    border: none;
+    border-top: 1px solid var(--panel-border);
+    margin: 24px 0;
+}
+
+/* IDE install card */
+.ig-ide-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.ig-ide-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.ig-ide-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ig-ide-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    font-family: var(--font-title);
+}
+
+.ig-ide-sub {
+    font-size: 0.775rem;
+    color: var(--muted);
+    margin-top: 1px;
+}
+
+.ig-feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.ig-feature-list li {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ig-feature-list li::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--success);
+}
+
+.ig-btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .ig-tab-btn {
+        font-size: 0.775rem;
+        padding: 8px 10px;
+    }
+    .ig-feature-list {
+        grid-template-columns: 1fr;
+    }
+}

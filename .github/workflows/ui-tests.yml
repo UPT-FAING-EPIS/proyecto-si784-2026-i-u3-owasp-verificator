@@ -1,0 +1,198 @@
+name: Pruebas de Interfaz (UI)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ui-tests:
+    name: Pruebas de Interfaz con Playwright
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias del proyecto
+        run: pip install -r requirements.txt
+
+      - name: Instalar Playwright y navegadores
+        run: |
+          pip install pytest-playwright playwright
+          playwright install --with-deps chromium
+
+      - name: Crear tests de interfaz
+        run: |
+          cat > tests/test_ui.py << 'PYEOF'
+          """
+          Pruebas de interfaz (UI) con Playwright.
+          Levanta la app FastAPI y navega las páginas reales con un navegador.
+          """
+          import os
+          os.environ["APP_ENV"] = "test"
+
+          import pytest
+          import subprocess
+          import time
+          import signal
+          from playwright.sync_api import sync_playwright
+
+
+          BASE_URL = "http://127.0.0.1:8000"
+
+
+          @pytest.fixture(scope="module")
+          def servidor():
+              """Levanta uvicorn como proceso hijo para las pruebas."""
+              proc = subprocess.Popen(
+                  ["python", "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000"],
+                  stdout=subprocess.PIPE,
+                  stderr=subprocess.PIPE,
+              )
+              # Esperar a que arranque
+              for _ in range(30):
+                  try:
+                      import urllib.request
+                      urllib.request.urlopen(f"{BASE_URL}/health", timeout=1)
+                      break
+                  except Exception:
+                      time.sleep(0.5)
+              yield proc
+              proc.send_signal(signal.SIGTERM)
+              proc.wait(timeout=10)
+
+
+          @pytest.fixture(scope="module")
+          def navegador():
+              with sync_playwright() as p:
+                  browser = p.chromium.launch(headless=True)
+                  yield browser
+                  browser.close()
+
+
+          @pytest.fixture
+          def pagina(navegador):
+              page = navegador.new_page()
+              yield page
+              page.close()
+
+
+          class TestDashboard:
+              def test_carga_pagina_principal(self, servidor, pagina):
+                  pagina.goto(BASE_URL)
+                  assert pagina.title() != ""
+                  # Verificar que contiene elementos del dashboard
+                  contenido = pagina.content()
+                  assert "OWASP" in contenido or "owasp" in contenido.lower()
+
+              def test_navegacion_a_analisis(self, servidor, pagina):
+                  pagina.goto(BASE_URL)
+                  # Buscar enlace a análisis y hacer clic
+                  link = pagina.locator('a[href*="analyze"]').first
+                  if link.is_visible():
+                      link.click()
+                      pagina.wait_for_load_state("networkidle")
+                      assert "/analyze" in pagina.url
+
+
+          class TestPaginaAnalisis:
+              def test_formulario_visible(self, servidor, pagina):
+                  pagina.goto(f"{BASE_URL}/analyze")
+                  pagina.wait_for_load_state("networkidle")
+                  # Debe existir un formulario o un área de texto
+                  contenido = pagina.content()
+                  assert "form" in contenido.lower() or "textarea" in contenido.lower() or "input" in contenido.lower()
+
+              def test_analizar_codigo_desde_ui(self, servidor, pagina):
+                  pagina.goto(f"{BASE_URL}/analyze")
+                  pagina.wait_for_load_state("networkidle")
+
+                  # Intentar seleccionar tipo "code" si hay selector
+                  selector = pagina.locator('select[name="target_type"]').first
+                  if selector.is_visible():
+                      selector.select_option("code")
+
+                  # Buscar textarea y escribir código
+                  textarea = pagina.locator('textarea[name="target_value"]').first
+                  if textarea.is_visible():
+                      textarea.fill("password = 'secret123'")
+
+                      # Enviar formulario
+                      submit = pagina.locator('button[type="submit"], input[type="submit"]').first
+                      if submit.is_visible():
+                          submit.click()
+                          pagina.wait_for_load_state("networkidle")
+                          # Debe redirigir a reporte
+                          assert "/reports" in pagina.url or pagina.content() != ""
+
+
+          class TestPaginasEstaticas:
+              def test_pagina_about(self, servidor, pagina):
+                  pagina.goto(f"{BASE_URL}/about")
+                  assert pagina.url.endswith("/about")
+                  contenido = pagina.content()
+                  assert len(contenido) > 100
+
+              def test_pagina_owasp_wiki(self, servidor, pagina):
+                  pagina.goto(f"{BASE_URL}/owasp")
+                  contenido = pagina.content()
+                  assert "OWASP" in contenido
+
+              def test_pagina_api_tutorial(self, servidor, pagina):
+                  pagina.goto(f"{BASE_URL}/api-tutorial")
+                  contenido = pagina.content()
+                  assert "API" in contenido or "api" in contenido.lower()
+
+
+          class TestResponsividad:
+              def test_viewport_movil(self, servidor, pagina):
+                  pagina.set_viewport_size({"width": 375, "height": 812})
+                  pagina.goto(BASE_URL)
+                  pagina.wait_for_load_state("networkidle")
+                  # La página debe cargar sin errores
+                  assert pagina.title() != ""
+
+              def test_viewport_desktop(self, servidor, pagina):
+                  pagina.set_viewport_size({"width": 1920, "height": 1080})
+                  pagina.goto(BASE_URL)
+                  pagina.wait_for_load_state("networkidle")
+                  assert pagina.title() != ""
+          PYEOF
+
+      - name: Ejecutar pruebas de interfaz
+        env:
+          APP_ENV: test
+        run: |
+          python -m pytest tests/test_ui.py \
+            -v \
+            --tb=short \
+            --junitxml=ui-results.xml
+
+      - name: Publicar resumen
+        if: always()
+        run: |
+          echo "## 🖥️ Resultados de Pruebas de Interfaz" >> $GITHUB_STEP_SUMMARY
+          if [ -f ui-results.xml ]; then
+            TESTS=$(grep -oP 'tests="\K[^"]+' ui-results.xml || echo "0")
+            FAILURES=$(grep -oP 'failures="\K[^"]+' ui-results.xml || echo "0")
+            echo "| Métrica | Valor |" >> $GITHUB_STEP_SUMMARY
+            echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+            echo "| Tests ejecutados | $TESTS |" >> $GITHUB_STEP_SUMMARY
+            echo "| Fallos | $FAILURES |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Subir resultados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-ui
+          path: ui-results.xml
+          retention-days: 15

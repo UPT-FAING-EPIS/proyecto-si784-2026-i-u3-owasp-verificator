@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title if title else 'OWASP Verificator' }}</title>
+    <link rel="stylesheet" href="/static/css/styles.css?v={{ request.app.state.asset_version }}">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+</head>
+<body>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme !== 'dark') {
+                document.documentElement.classList.add('light-theme');
+                document.body.classList.add('light-theme');
+            }
+        })();
+    </script>
+    {% set is_auth_page = request and request.url.path in ['/login', '/register'] %}
+    
+    <div class="app-layout {% if is_auth_page %}auth-layout{% endif %}">
+        {% if not is_auth_page %}
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="{% if current_user %}/dashboard{% else %}/{% endif %}" class="sidebar-logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;">
+                        <path d="M12 2L3 6v6c0 5.52 4.48 10 9 10s9-4.48 9-10V6l-9-4z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+                        <path d="M12 6l-5 2.22V12c0 2.76 2.24 5 5 5s5-2.24 5-5V8.22L12 6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="sidebar-logo-text">OWASP Verificator</span>
+                </a>
+                <button id="desktopSidebarCollapseBtn" title="Contraer Menú">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">Menú Principal</div>
+                
+                {% if current_user %}
+                    {% if current_user.role == 'admin' %}
+                    <a href="/dashboard" class="nav-item" id="nav-dashboard">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                        <span>Panel Global</span>
+                    </a>
+                    <a href="/dashboard/users" class="nav-item" id="nav-users">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <span>Cuentas SOC</span>
+                    </a>
+                    {% else %}
+                    <a href="/dashboard" class="nav-item" id="nav-dashboard">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                        <span>Mi Dashboard</span>
+                    </a>
+                    <a href="/analyze" class="nav-item" id="nav-analyze">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <span>Analizar</span>
+                    </a>
+                    {% endif %}
+                {% else %}
+                <a href="/" class="nav-item" id="nav-home">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/analyze" class="nav-item" id="nav-analyze">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <span>Analizar</span>
+                </a>
+                {% endif %}
+                
+                <div class="sidebar-section">Recursos</div>
+                <a href="/owasp" class="nav-item" id="nav-wiki">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    <span>Wiki OWASP Top 10</span>
+                </a>
+                <a href="/api-tutorial" class="nav-item" id="nav-integrations">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                    <span>Integraciones API</span>
+                </a>
+                <a href="/about" class="nav-item" id="nav-about">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <span>Acerca de</span>
+                </a>
+            </nav>
+        </aside>
+        {% endif %}
+        
+        <div class="main-content">
+            <header class="topbar">
+                <div class="topbar-inner">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        {% if not is_auth_page %}
+                        <button id="sidebarToggle" class="topbar-action" style="display: none; padding: 0 10px; height: 36px; align-items: center; justify-content: center;" title="Menú">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                        </button>
+                        {% endif %}
+                        <div class="page-title">{% if title and title != 'OWASP Verificator' %}{{ title }}{% endif %}</div>
+                    </div>
+                    
+                    <div class="topbar-actions">
+                        <button id="themeToggleBtn" class="topbar-action" style="padding: 0 10px; height: 36px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: var(--radius-sm);" title="Cambiar Tema">
+                            <!-- Sun Icon (visible in dark mode) -->
+                            <svg id="themeSunIcon" class="theme-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3"></line>
+                                <line x1="12" y1="21" x2="12" y2="23"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                <line x1="1" y1="12" x2="3" y2="12"></line>
+                                <line x1="21" y1="12" x2="23" y2="12"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                            </svg>
+                            <!-- Moon Icon (visible in light mode) -->
+                            <svg id="themeMoonIcon" class="theme-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                        </button>
+                        {% if show_donate_btn is not defined or show_donate_btn %}
+                        <a class="topbar-action topbar-action-donate" href="https://www.paypal.com/donate/?hosted_button_id=MASK8JSBNSZPQ" target="_blank" title="Donar con PayPal">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="topbar-btn-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            <span class="topbar-btn-text">Donar</span>
+                        </a>
+                        {% endif %}
+                        <a class="topbar-action topbar-action-docs" href="/docs" title="API Swagger Docs">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="topbar-btn-icon"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                            <span class="topbar-btn-text">API Docs</span>
+                        </a>
+                        {% if current_user %}
+                        <div class="profile-dropdown-container">
+                            <button class="profile-dropdown-btn" id="profileDropdownBtn">
+                                <span class="avatar">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                </span>
+                                <span class="profile-username">{{ current_user.username }}</span>
+                                <span class="role-badge">{{ current_user.role | upper }}</span>
+                            </button>
+                            <div class="profile-dropdown-menu" id="profileDropdownMenu">
+                                <a href="/logout">Cerrar Sesión</a>
+                            </div>
+                        </div>
+                        {% else %}
+                        <a class="topbar-action topbar-action-login" href="/login">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="topbar-btn-icon"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                            <span class="topbar-btn-text">Iniciar Sesión</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+            
+            <main class="container">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const path = window.location.pathname;
+            
+            // Set active class on navigation items
+            const mappings = [
+                { id: "nav-dashboard", paths: ["/dashboard"] },
+                { id: "nav-users", paths: ["/dashboard/users"] },
+                { id: "nav-analyze", paths: ["/analyze"] },
+                { id: "nav-wiki", paths: ["/owasp"] },
+                { id: "nav-integrations", paths: ["/api-tutorial"] },
+                { id: "nav-about", paths: ["/about"] },
+                { id: "nav-home", paths: ["/"] }
+            ];
+            
+            mappings.forEach(m => {
+                const el = document.getElementById(m.id);
+                if (el) {
+                    const isActive = m.paths.some(p => p === path || (p !== "/" && path.startsWith(p)));
+                    if (isActive) {
+                        el.classList.add("active");
+                    }
+                }
+            });
+
+            // Mobile toggle sidebar functionality
+            const toggleBtn = document.getElementById("sidebarToggle");
+            if (toggleBtn) {
+                // Determine screen sizes and toggle button visibility
+                function checkWidth() {
+                    if (window.innerWidth <= 991) {
+                        toggleBtn.style.display = "inline-flex";
+                    } else {
+                        toggleBtn.style.display = "none";
+                        document.body.classList.remove("sidebar-open");
+                    }
+                }
+                
+                window.addEventListener("resize", checkWidth);
+                checkWidth();
+
+                toggleBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    document.body.classList.toggle("sidebar-open");
+                });
+
+                document.addEventListener("click", (e) => {
+                    if (document.body.classList.contains("sidebar-open") && !e.target.closest("#sidebar") && !e.target.closest("#sidebarToggle")) {
+                        document.body.classList.remove("sidebar-open");
+                    }
+                });
+            }
+
+            // Dropdown menu toggle helper
+            const dropdownBtn = document.getElementById("profileDropdownBtn");
+            const dropdownMenu = document.getElementById("profileDropdownMenu");
+            if (dropdownBtn && dropdownMenu) {
+                dropdownBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    dropdownMenu.classList.toggle("active");
+                });
+                document.addEventListener("click", () => {
+                    dropdownMenu.classList.remove("active");
+                });
+            }
+
+            // Theme toggle control
+            const themeToggleBtn = document.getElementById("themeToggleBtn");
+            const sunIcon = document.getElementById("themeSunIcon");
+            const moonIcon = document.getElementById("themeMoonIcon");
+
+            function updateThemeIcons() {
+                if (document.body.classList.contains("light-theme")) {
+                    if (sunIcon) sunIcon.style.display = "none";
+                    if (moonIcon) moonIcon.style.display = "block";
+                } else {
+                    if (sunIcon) sunIcon.style.display = "block";
+                    if (moonIcon) moonIcon.style.display = "none";
+                }
+            }
+
+            updateThemeIcons();
+
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener("click", () => {
+                    document.documentElement.classList.toggle("light-theme");
+                    document.body.classList.toggle("light-theme");
+                    if (document.body.classList.contains("light-theme")) {
+                        localStorage.setItem("theme", "light");
+                    } else {
+                        localStorage.setItem("theme", "dark");
+                    }
+                    updateThemeIcons();
+                });
+            }
+
+            // Desktop sidebar collapse toggle
+            const collapseBtn = document.getElementById("desktopSidebarCollapseBtn");
+            if (collapseBtn) {
+                const sidebarState = localStorage.getItem("sidebar-collapsed");
+                if (sidebarState === "true") {
+                    document.body.classList.add("sidebar-collapsed");
+                }
+                
+                collapseBtn.addEventListener("click", () => {
+                    document.body.classList.toggle("sidebar-collapsed");
+                    localStorage.setItem("sidebar-collapsed", document.body.classList.contains("sidebar-collapsed"));
+                });
+            }
+        });
+    </script>
+</body>
+</html>

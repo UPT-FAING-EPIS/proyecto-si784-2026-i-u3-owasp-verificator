@@ -1,0 +1,13 @@
+node_modules/**
+.vscode/**
+.vscodeignore
+package-lock.json
+sync.js
+app/static/**
+app/templates/**
+app/routers/**
+app/main.py
+app/config.py
+app/models.py
+app/schemas.py
+app/store.py

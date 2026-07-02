@@ -1,0 +1,55 @@
+name: Análisis Estático - Semgrep
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  semgrep:
+    name: Semgrep SAST Scan
+    runs-on: ubuntu-latest
+
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar Semgrep
+        run: pip install semgrep
+
+      - name: Ejecutar Semgrep con reglas OWASP y Python
+        run: |
+          semgrep scan \
+            --config "p/owasp-top-ten" \
+            --config "p/python" \
+            --sarif \
+            --output semgrep-results.sarif \
+            --error \
+            app/ || true
+
+      - name: Subir resultados SARIF a GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep-results.sarif
+          category: semgrep
+
+      - name: Mostrar resumen en consola
+        if: always()
+        run: |
+          semgrep scan \
+            --config "p/owasp-top-ten" \
+            --config "p/python" \
+            --text \
+            app/ || true

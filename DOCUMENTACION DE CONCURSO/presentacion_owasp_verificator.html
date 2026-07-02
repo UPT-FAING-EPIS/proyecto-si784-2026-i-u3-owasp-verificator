@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitch Deck - OWASP Verificator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --slide-bg: #ffffff;
+            --border-color: rgba(15, 23, 42, 0.08);
+            --primary: #0284c7;
+            --secondary: #0f172a;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --accent-green: #047857;
+            --accent-yellow: #b45309;
+            --accent-red: #b91c1c;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(2, 132, 199, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(15, 23, 42, 0.03) 0%, transparent 40%);
+        }
+
+        /* Barra superior */
+        .header {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-symbol {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: #ffffff;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.95rem;
+        }
+
+        .company-name {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+        }
+
+        /* Slide Container */
+        .slide-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 70vh;
+            position: relative;
+            perspective: 1500px;
+        }
+
+        /* Slide Individual */
+        .slide {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background: var(--slide-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95) translateZ(-50px);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06);
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1) translateZ(0);
+        }
+
+        /* Tipografías de Diapositivas */
+        .slide-header {
+            margin-bottom: 20px;
+        }
+
+        .slide-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .slide-title {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1.2;
+            background: linear-gradient(135deg, #0f172a, #334155);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .slide-body {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide-content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            width: 100%;
+        }
+
+        .slide-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(15,23,42,0.05);
+            padding-top: 15px;
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Estructuras de contenido especiales */
+        .hero-title {
+            font-size: 3rem;
+            text-align: center;
+            width: 100%;
+            background: linear-gradient(135deg, var(--secondary) 30%, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: var(--font-display);
+            margin-bottom: 10px;
+        }
+
+        .accent-phrase {
+            font-size: 2.5rem;
+            font-family: var(--font-display);
+            color: var(--accent-red);
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .bullet-list {
+            list-style: none;
+        }
+
+        .bullet-list li {
+            margin-bottom: 18px;
+            font-size: 1.1rem;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .bullet-list li::before {
+            content: '✓';
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .bullet-list-red li::before {
+            content: '✕';
+            color: var(--accent-red);
+        }
+
+        .highlight-card {
+            background: rgba(15, 23, 42, 0.02);
+            border: 1px solid rgba(15, 23, 42, 0.05);
+            padding: 24px;
+            border-radius: 12px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .pricing-card {
+            background: rgba(2, 132, 199, 0.03);
+            border: 1px solid rgba(2, 132, 199, 0.1);
+            border-top: 4px solid var(--primary);
+        }
+
+        /* Diagrama de despliegue en CSS */
+        .deployment-diagram {
+            display: grid;
+            grid-template-columns: 1fr auto 1.2fr auto 1fr;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.01);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .diagram-node {
+            background: #ffffff;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04);
+        }
+
+        .diagram-node-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+            padding-bottom: 4px;
+        }
+
+        .diagram-subnode {
+            background: #f8fafc;
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-bottom: 5px;
+            color: var(--text-main);
+        }
+
+        .diagram-arrow {
+            font-size: 1.2rem;
+            color: var(--primary);
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .diagram-arrow-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        /* Tabla de proyecciones */
+        .proj-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .proj-table th {
+            color: var(--secondary);
+            border-bottom: 2px solid rgba(15, 23, 42, 0.1);
+            text-align: left;
+            padding: 8px;
+        }
+
+        .proj-table td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+        }
+
+        .proj-table tr:hover {
+            background: rgba(15, 23, 42, 0.02);
+        }
+
+        /* Controles Inferiores */
+        .footer-controls {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-nav {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: var(--font-display);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.05);
+        }
+
+        .btn-nav:hover {
+            background: var(--secondary);
+            color: #ffffff;
+            border-color: var(--secondary);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        }
+
+        .btn-nav:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: #f1f5f9;
+            color: var(--text-muted);
+            border-color: var(--border-color);
+            box-shadow: none;
+        }
+
+        .progress-bar-container {
+            flex-grow: 1;
+            margin: 0 40px;
+            height: 4px;
+            background: rgba(15, 23, 42, 0.05);
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            width: 8.33%;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .slide-counter {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            min-width: 60px;
+            text-align: right;
+        }
+
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .header, .controls {
+                display: none !important;
+            }
+            .slide-container {
+                height: auto !important;
+                max-width: 100% !important;
+                perspective: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .slide {
+                position: relative !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                transform: none !important;
+                display: flex !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                box-shadow: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                margin: 0 !important;
+                padding: 45px !important;
+                box-sizing: border-box !important;
+                background: var(--slide-bg) !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CABECERA -->
+    <div class="header">
+        <div class="logo">
+            <div class="logo-symbol">Ø</div>
+            <span>Verificador OWASP</span>
+        </div>
+        <div class="company-name">Securify Software Solutions</div>
+    </div>
+
+    <!-- CONTENEDOR DE DIAPOSITIVAS (MÁXIMO 12 SLIDES) -->
+    <div class="slide-container">
+
+        <!-- SLIDE 1: PORTADA -->
+        <div class="slide active" id="slide-1">
+            <div class="slide-header">
+                <span class="slide-tag">Pitch de Presentación</span>
+                <h2 style="font-size: 1.5rem; color: var(--text-muted);">Calidad & Seguridad de Software</h2>
+            </div>
+            <div class="slide-body" style="flex-direction: column; text-align: center;">
+                <h1 class="hero-title">OWASP VERIFICATOR</h1>
+                <p style="font-size: 1.3rem; color: var(--secondary); max-width: 800px; margin-bottom: 30px;">
+                    Análisis estático de vulnerabilidades en tiempo real integrado directamente en el IDE.
+                </p>
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 15px 40px; border-radius: 30px;">
+                    <p style="font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase;">
+                        Desarrolladores: Gerardo Concha & Diego Andia | UPT 2026
+                    </p>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Diapositiva 1 de 12</span>
+                <span>Securify Software Solutions S.A.C.</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: EL GRAN PROBLEMA -->
+        <div class="slide" id="slide-2">
+            <div class="slide-header">
+                <span class="slide-tag">El Problema de Negocio</span>
+                <h2 class="slide-title">"Perder Datos es Perder Plata"</h2>
+            </div>
+            <div class="slide-body">
+                <div class="slide-content-grid" style="grid-template-columns: 0.95fr 1.05fr; gap: 20px;">
+                    <div>
+                        <p style="font-size: 1.1rem; margin-bottom: 15px;">Las fugas de información confidencial y el robo de datos representan la mayor pérdida material de la industria del software.</p>
+                        <ul class="bullet-list bullet-list-red" style="font-size: 0.95rem;">
+                            <li><span><strong>Exposición de Secretos:</strong> Credenciales y tokens escritos en duro en el código fuente.</span></li>
+                            <li><span><strong>Fácil Detección Maliciosa:</strong> Bots capturan credenciales expuestas en segundos.</span></li>
+                            <li><span><strong>Pérdida Económica:</strong> Suplantaciones de identidad y cargos desorbitados no autorizados en la nube.</span></li>
+                        </ul>
+                    </div>
+                    <div class="highlight-card" style="border-color: var(--accent-red); background: rgba(239, 68, 68, 0.01); padding: 15px; justify-content: flex-start;">
+                        <h3 style="font-size: 0.95rem; color: var(--accent-red); margin-bottom: 8px; text-align: center; font-weight: 700;">
+                            Auditoría Real: Portales Gubernamentales (.GOB.PE)
+                        </h3>
+                        <p style="font-size: 0.75rem; margin-bottom: 8px; text-align: center; color: var(--text-muted);">
+                            Resultados reales obtenidos al auditar plataformas del Estado con nuestro motor:
+                        </p>
+                        <table class="proj-table" style="font-size: 0.7rem; width: 100%;">
+                            <thead>
+                                <tr style="border-bottom: 1.5px solid rgba(15, 23, 42, 0.08);">
+                                    <th style="padding: 4px;">Objetivo (Portal)</th>
+                                    <th style="padding: 4px;">Servidor</th>
+                                    <th style="padding: 4px; text-align: center;">Fallos</th>
+                                    <th style="padding: 4px;">Fallo Crítico Detectado</th>
+                                    <th style="padding: 4px; text-align: right;">Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 4px;">Gobierno Regional de Tacna</td>
+                                    <td style="padding: 4px;">Apache</td>
+                                    <td style="padding: 4px; text-align: center; color: var(--accent-yellow); font-weight: bold;">4</td>
+                                    <td style="padding: 4px; font-size: 0.65rem;">Falta CSP, X-Frame-Options</td>
+                                    <td style="padding: 4px; text-align: right; color: var(--accent-yellow); font-weight: bold;">50/100</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px;">Caja Municipal de Tacna</td>
+                                    <td style="padding: 4px;">Apache</td>
+                                    <td style="padding: 4px; text-align: center; color: var(--accent-green); font-weight: bold;">1</td>
+                                    <td style="padding: 4px; font-size: 0.65rem;">Exposición cabecera Server</td>
+                                    <td style="padding: 4px; text-align: right; color: var(--accent-green); font-weight: bold;">95/100</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px;">M. D. Gregorio Albarracín</td>
+                                    <td style="padding: 4px;">Apache/PHP</td>
+                                    <td style="padding: 4px; text-align: center; color: var(--accent-red); font-weight: bold;">5</td>
+                                    <td style="padding: 4px; font-size: 0.65rem;">Falta CSP, HSTS, X-Frame-Options</td>
+                                    <td style="padding: 4px; text-align: right; color: var(--accent-red); font-weight: bold;">35/100</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px;">M. D. Ciudad Nueva</td>
+                                    <td style="padding: 4px;">Nginx/PHP</td>
+                                    <td style="padding: 4px; text-align: center; color: var(--accent-red); font-weight: bold;">5</td>
+                                    <td style="padding: 4px; font-size: 0.65rem;">Falta CSP, HSTS, X-Frame-Options</td>
+                                    <td style="padding: 4px; text-align: right; color: var(--accent-red); font-weight: bold;">35/100</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px;">M. D. Alto de la Alianza</td>
+                                    <td style="padding: 4px;">Apache/Laravel</td>
+                                    <td style="padding: 4px; text-align: center; color: var(--accent-red); font-weight: bold;">5</td>
+                                    <td style="padding: 4px; font-size: 0.65rem;">Falta CSP, HSTS, X-Frame-Options</td>
+                                    <td style="padding: 4px; text-align: right; color: var(--accent-red); font-weight: bold;">35/100</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px;">M. D. Pocollay</td>
+                                    <td style="padding: 4px;">LiteSpeed</td>
+                                    <td style="padding: 4px; text-align: center; color: var(--accent-red); font-weight: bold;">5</td>
+                                    <td style="padding: 4px; font-size: 0.65rem;">Falta CSP, HSTS, X-Frame-Options</td>
+                                    <td style="padding: 4px; text-align: right; color: var(--accent-red); font-weight: bold;">35/100</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Diapositiva 2 de 12</span>
+                <span>El Dolor del Mercado</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: EL COSTO DE AUDITAR TARDE (JUSTIFICACIÓN) -->
+        <div class="slide" id="slide-3">
+            <div class="slide-header">
+                <span class="slide-tag">El Reto de TI</span>
+                <h2 class="slide-title">El Costo de Asegurar Tarde</h2>
+            </div>
+            <div class="slide-body">
+                <div class="slide-content-grid">
+                    <div class="highlight-card" style="text-align: center;">
+                        <span style="font-size: 4rem; color: var(--accent-yellow); font-weight: 800;">30x</span>
+                        <p style="font-size: 1.2rem; color: var(--text-main); margin-top: 10px;">Más costoso solucionar una brecha en producción que en el editor.</p>
+                    </div>
+                    <div>
+                        <h3 style="margin-top: 10px;">¿Por qué las soluciones tradicionales fallan?</h3>
+                        <p>Las auditorías manuales ocurren al final del ciclo de vida del software, bloqueando los despliegues o dejando pasar vulnerabilidades críticas como inyecciones de código.</p>
+                        <ul class="bullet-list">
+                            <li><span><strong>SAST Comerciales:</strong> Excesivamente costosos y complejos.</span></li>
+                            <li><span><strong>Poco prácticos:</strong> Interrumpen el flujo de trabajo del desarrollador.</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Diapositiva 3 de 12</span>
+                <span>Shift Left Security</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: LA SOLUCIÓN (PRODUCTO) -->
+        <div class="slide" id="slide-4">
+            <div class="slide-header">
+                <span class="slide-tag">Nuestra Solución</span>
+                <h2 class="slide-title">OWASP Verificator</h2>
+            </div>
+            <div class="slide-body">
+                <div class="slide-content-grid" style="grid-template-columns: 1.2fr 0.8fr;">
+                    <div>
+                        <p style="font-size: 1.1rem; margin-bottom: 20px;">Un ecosistema liviano y automatizado 3 en 1 para erradicar fallos antes de que lleguen a producción:</p>
+                        <ul class="bullet-list">
+                            <li><span><strong>VS Code Extension:</strong> Diagnósticos y Quick Fixes inmediatos al guardar el archivo en el editor de código.</span></li>
+                            <li><span><strong>FastAPI Core Backend:</strong> Motor central ágil y modular con persistencia relacional híbrida.</span></li>
+                            <li><span><strong>CLI de Consola:</strong> Scripts rápidos integrados en pipelines de despliegue continuo (CI/CD).</span></li>
+                        </ul>
+                    </div>
+                    <div class="highlight-card pricing-card">
+                        <h3 style="text-align: center; color: var(--primary);">Seguridad sin Latencia</h3>
+                        <p style="text-align: center; font-size: 0.9rem; margin-top: 10px;">Validación de vulnerabilidades OWASP Top 10 y dependencias inseguras en menos de 5 segundos.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Diapositiva 4 de 12</span>
+                <span>Ecosistema Integrado</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: DIAGRAMA DE DESPLIEGUE -->
+        <div class="slide" id="slide-5">
+            <div class="slide-header">
+                <span class="slide-tag">Arquitectura del Ecosistema</span>
+                <h2 class="slide-title">Diagrama de Despliegue Físico</h2>
+            </div>
+            <div class="slide-body" style="align-items: stretch; justify-content: center; flex-direction: column;">
+                <div class="deployment-diagram" style="grid-template-columns: 1.2fr auto 1.5fr auto 1fr; font-size: 0.8rem; padding: 12px; gap: 8px;">
+                    <!-- CLIENTE LOCAL (PC del Desarrollador) -->
+                    <div class="diagram-node" style="padding: 8px;">
+                        <div class="diagram-node-title">PC del Desarrollador (Client)</div>
+                        <div style="background: rgba(15,23,42,0.02); border: 1px solid rgba(15,23,42,0.06); padding: 4px; border-radius: 6px; margin-bottom: 6px;">
+                            <div style="font-weight:700; color:var(--secondary); font-size: 0.65rem; text-align:left; margin-bottom: 2px;">Navegador Web</div>
+                            <div class="diagram-subnode" style="margin-bottom:0; font-size:0.65rem; padding: 2px 4px;">Dashboard Web / Reportes</div>
+                        </div>
+                        <div style="background: rgba(15,23,42,0.02); border: 1px solid rgba(15,23,42,0.06); padding: 4px; border-radius: 6px;">
+                            <div style="font-weight:700; color:var(--secondary); font-size: 0.65rem; text-align:left; margin-bottom: 2px;">VS Code IDE</div>
+                            <div class="diagram-subnode" style="font-size:0.65rem; padding: 2px 4px; margin-bottom: 3px;">Extensión OWASP Verificador</div>
+                            <div class="diagram-subnode" style="margin-bottom:0; font-size:0.65rem; padding: 2px 4px; background: rgba(0,0,0,0.05);">Workspace Local (Código)</div>
+                        </div>
+                    </div>
+                    
+                    <!-- FLECHA -->
+                    <div class="diagram-arrow" style="align-self: center;">
+                        <span>➜</span>
+                        <span class="diagram-arrow-label" style="font-size: 0.55rem;">HTTPS (8000)</span>
+                    </div>
+                    
+                    <!-- SERVIDOR EN NUBE (VM DEBIAN) -->
+                    <div class="diagram-node" style="border-color: var(--accent-yellow); padding: 8px;">
+                        <div class="diagram-node-title" style="color: var(--accent-yellow);">Nube (VM Debian 12)</div>
+                        <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 6px;">
+                            <div style="background: rgba(15,23,42,0.02); border: 1px solid rgba(15,23,42,0.06); padding: 4px; border-radius: 6px;">
+                                <div style="font-weight:700; color:var(--accent-yellow); font-size: 0.65rem; text-align:left; margin-bottom: 2px;">Entorno Python (FastAPI)</div>
+                                <div class="diagram-subnode" style="font-size:0.65rem; padding: 2px 4px; margin-bottom: 3px;">Backend API (Uvicorn)</div>
+                                <div class="diagram-subnode" style="margin-bottom:0; font-size:0.65rem; padding: 2px 4px;">CLI Scanner (cli.py)</div>
+                            </div>
+                            <div>
+                                <div style="background: rgba(15,23,42,0.02); border: 1px solid rgba(15,23,42,0.06); padding: 4px; border-radius: 6px; margin-bottom: 6px;">
+                                    <div style="font-weight:700; color:var(--accent-yellow); font-size: 0.65rem; text-align:left; margin-bottom: 2px;">MySQL Server</div>
+                                    <div class="diagram-subnode" style="margin-bottom:0; font-size:0.65rem; padding: 2px 4px;">owasp_verificador (DB)</div>
+                                </div>
+                                <div style="background: rgba(15,23,42,0.02); border: 1px solid rgba(15,23,42,0.06); padding: 4px; border-radius: 6px;">
+                                    <div style="font-weight:700; color:var(--accent-yellow); font-size: 0.65rem; text-align:left; margin-bottom: 2px;">File System</div>
+                                    <div class="diagram-subnode" style="font-size:0.65rem; padding: 2px 4px; margin-bottom: 3px;">SQLite3 DB (Fallback)</div>
+                                    <div class="diagram-subnode" style="margin-bottom:0; font-size:0.65rem; padding: 2px 4px;">Reportes PDF/JSON</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- FLECHA -->
+                    <div class="diagram-arrow" style="align-self: center;">
+                        <span>➜</span>
+                        <span class="diagram-arrow-label" style="font-size: 0.55rem;">REST API (443)</span>
+                    </div>
+                    
+                    <!-- SERVICIOS EXTERNOS (GITHUB) -->
+                    <div class="diagram-node" style="border-color: var(--accent-green); padding: 8px;">
+                        <div class="diagram-node-title" style="color: var(--accent-green);">GitHub (SaaS)</div>
+                        <div style="background: rgba(15,23,42,0.02); border: 1px solid rgba(15,23,42,0.06); padding: 4px; border-radius: 6px;">
+                            <div style="font-weight:700; color:var(--accent-green); font-size: 0.65rem; text-align:left; margin-bottom: 2px;">GitHub REST API</div>
+                            <div class="diagram-subnode" style="margin-bottom:0; font-size:0.65rem; padding: 2px 4px;">Repositorios</div>
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size: 0.82rem; color: var(--text-muted); text-align: center; margin-top: 10px;">
+                    El backend conmutará automáticamente entre SQLite3 en local y MySQL en el servidor de la nube de forma transparente.
+                </p>
+            </div>
+            <div class="slide-footer">
+                <span>Diapositiva 5 de 12</span>
+                <span>Infraestructura Multiplataforma</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: PORTABILIDAD Y PERSISTENCIA DUAL -->
+        <div class="slide" id="slide-6">
+            <div class="slide-header">
+                <span class="slide-tag">Persistencia del Sistema</span>
+                <h2 class="slide-title">Portabilidad Dual: SQLite3 & MySQL</h2>
+            </div>
+            <div class="slide-body">
+                <div class="slide-content-grid">
+                    <div class="highlight-card">
+                        <h3>SQLite3: Motor Local Zero-Config</h3>
+                        <p style="margin-top: 10px; font-size: 0.95rem;">
+                            SQLite3 actúa como el motor de base de datos local e independiente por defecto en las estaciones de trabajo. 
+                            <br><br>
+                            Permite a los desarrolladores ejecutar la suite completa de OWASP Verificator de forma inmediata en Windows, Linux and macOS sin requerir la instalación o configuración compleja de servidores de bases de datos pesados.
+                        </p>
+                    </div>
+                    <div class="highlight-card">
+                        <h3>MySQL: Auditoría en Producción</h3>
+                        <p style="margin-top: 10px; font-size: 0.95rem;">
+                            Servidor relacional corporativo alojado en la nube (Debian 12) para consolidar los logs de acceso de red globales, el histórico de escaneos de múltiples usuarios y los tokens de seguridad de API.
+                            <br><br>
+                            El sistema conmuta de forma automática y transparente según el archivo de configuración.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Diapositiva 6 de 12</span>
+                <span>Flexibilidad de Despliegue</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: CAPACIDADES DEL MOTOR -->
+        <div class="slide" id="slide-7">
+            <div class="slide-header">
+                <span class="slide-tag">Capacidades Técnicas</span>
+                <h2 class="slide-title">Análisis Estático y de Red</h2>
+            </div>
+            <div class="slide-body">
+                <div class="slide-content-grid">
+                    <div class="highlight-card">
+                        <h3>SAST & CVE Analyzer</h3>
+                        <ul class="bullet-list" style="margin-top: 10px; font-size: 0.95rem;">
+                            <li><span><strong>Escáner Regex Modular:</strong> Analiza código fuente en caliente al guardar en VS Code, detectando secretos expuestos e inyecciones.</span></li>
+                            <li><span><strong>CVE Scanner:</strong> Compara importaciones en `requirements.txt` con fallos de seguridad conocidos.</span></li>
+                        </ul>
+                    </div>
+                    <div class="highlight-card">
+                        <h3>URL Checking & GitHub Sync</h3>
+                        <ul class="bullet-list" style="margin-top: 10px; font-size: 0.95rem;">
+                            <li><span><strong>Auditoría de Red:</strong> Escanea cabeceras HTTP críticas (HSTS, CSP) en URLs y mitiga ataques SSRF.</span></li>
+                            <li><span><strong>Sincronización GitHub:</strong> Publica issues automáticamente en el repositorio del proyecto.</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Diapositiva 7 de 12</span>
+                <span>Tecnología de Auditoría</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: REGLAS DE NEGOCIO (SCORE INTELIGENTE) -->
+        <div class="slide" id="slide-8">
+            <div class="slide-header">
+                <span class="slide-tag">Algoritmo de Calidad</span>
+                <h2 class="slide-title">Calificación y Reglas de Negocio</h2>
+            </div>
+            <div class="slide-body">
+                <div class="slide-content-grid" style="grid-template-columns: 0.9fr 1.1fr;">
+                    <div class="highlight-card" style="text-align: center; border-color: var(--primary); background: var(--primary); color: #ffffff;">
+                        <span style="font-size: 3.5rem; font-weight: bold;">100</span>
+                        <p style="font-size: 1.1rem; color: #ffffff; margin-top: 5px;">Puntos Base Iniciales</p>
+                    </div>
+                    <div>
+                        <h3>Deducciones Proporcionales por Severidad</h3>
+                        <p>Cada vulnerabilidad detectada reduce la puntuación de seguridad final del análisis según su gravedad:</p>
+                        <ul class="bullet-list" style="margin-top: 10px; font-size: 0.95rem;">
+                            <li><span><strong>Fallo de Severidad Alta:</strong> Resta <strong>30 puntos</strong> (ej: tokens expuestos).</span></li>
+                            <li><span><strong>Fallo de Severidad Media:</strong> Resta <strong>15 puntos</strong> (ej: dependencias vulnerables).</span></li>
+                            <li><span><strong>Fallo de Severidad Baja:</strong> Resta <strong>5 puntos</strong> (ej: cabeceras HTTP faltantes).</span></li>
+                        </ul>
+                        <p style="font-size: 0.85rem; font-style: italic; margin-top: 10px; color: var(--text-muted);">El puntaje final está acotado a un valor mínimo de 0.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Diapositiva 8 de 12</span>
+                <span>Métricas de Calidad</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: DEMOSTRACIÓN EN VIVO (PAUSA) -->
+        <div class="slide" id="slide-9">
+            <div class="slide-header">
+                <span class="slide-tag">Demostración Práctica</span>
+                <h2 class="slide-title">Pasaremos al Sistema Web</h2>
+            </div>
+            <div class="slide-body" style="flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                <div class="slide-content-grid" style="grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%;">
+                    <div class="highlight-card" style="border-top: 4px solid var(--primary); padding: 20px; text-align: center;">
+                        <span style="font-size: 2.2rem; margin-bottom: 10px; display: block;">💻</span>
+                        <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 10px;">1. Extensión VS Code</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">
+                            Detección de vulnerabilidades y Quick Fixes automatizados en caliente al guardar código fuente local.
+                        </p>
+                    </div>
+                    <div class="highlight-card" style="border-top: 4px solid var(--accent-yellow); padding: 20px; text-align: center;">
+                        <span style="font-size: 2.2rem; margin-bottom: 10px; display: block;">🔌</span>
+                        <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 10px;">2. FastAPI Backend</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">
+                            Documentación interactiva de la API de auditoría, motor de reglas modular y registros en base de datos local SQLite3.
+                        </p>
+                    </div>
+                    <div class="highlight-card" style="border-top: 4px solid var(--accent-green); padding: 20px; text-align: center;">
+                        <span style="font-size: 2.2rem; margin-bottom: 10px; display: block;">🐙</span>
+                        <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 10px;">3. Reportes e Integración</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">
+                            Generación de reportes PDF detallados y sincronización automática de issues en repositorios de GitHub.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Diapositiva 9 de 12</span>
+                <span>OWASP Verificator en Acción</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: ESTRATEGIA DE VENTAS E INGRESOS -->
+        <div class="slide" id="slide-10">
+            <div class="slide-header">
+                <span class="slide-tag">Modelo de Negocio</span>
+                <h2 class="slide-title">Estrategia de Ventas e Ingresos</h2>
+            </div>
+            <div class="slide-body">
+                <div class="slide-content-grid" style="gap: 30px;">
+                    <div class="highlight-card" style="border-top: 4px solid var(--accent-yellow); justify-content: flex-start; padding: 25px;">
+                        <h3 style="color: var(--accent-yellow); margin-bottom: 10px; font-size: 1.25rem;">1. Creación de Reglas Personalizadas (Custom Rules)</h3>
+                        <p style="font-size: 0.9rem; margin-bottom: 12px; color: var(--text-muted); line-height: 1.4;">
+                            Las empresas tienen estándares de codificación internos y firmas de secretos específicos que requieren auditorías especializadas y a medida.
+                        </p>
+                        <ul class="bullet-list" style="font-size: 0.85rem; line-height: 1.4;">
+                            <li><span><strong>Firmas Regex a Medida:</strong> Creación de firmas personalizadas para detectar patrones de código y tokens propios del cliente.</span></li>
+                            <li><span><strong>Optimización de Escaneo:</strong> Ajuste fino del analizador estático para mitigar y eliminar "falsos positivos" del negocio.</span></li>
+                            <li><span><strong>Consultoría Técnica Premium:</strong> Cobro por paquetes de personalización del motor y mantenimiento continuo.</span></li>
+                        </ul>
+                    </div>
+                    <div class="highlight-card" style="border-top: 4px solid var(--accent-green); justify-content: flex-start; padding: 25px;">
+                        <h3 style="color: var(--accent-green); margin-bottom: 10px; font-size: 1.25rem;">2. Modelo On-Premise / Self-Hosted (Hosting Privado)</h3>
+                        <p style="font-size: 0.9rem; margin-bottom: 12px; color: var(--text-muted); line-height: 1.4;">
+                            Diseñado para entidades reguladas (bancos, fintechs y gobierno) que por estrictas políticas de cumplimiento no pueden subir o analizar su código de manera externa.
+                        </p>
+                        <ul class="bullet-list" style="font-size: 0.85rem; line-height: 1.4;">
+                            <li><span><strong>Aislamiento 100% Local:</strong> Despliegue del backend FastAPI y la BD MySQL dentro de los servidores o nube privada del cliente.</span></li>
+                            <li><span><strong>Privacidad Total del Código:</strong> Las auditorías ocurren íntegramente de manera local, evitando compartir el código fuente externamente.</span></li>
+                            <li><span><strong>Licenciamiento Corporativo:</strong> Venta de licencias anuales de uso privado con soporte técnico dedicado.</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Diapositiva 10 de 12</span>
+                <span>Estrategia de Monetización</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: PROYECCIÓN DE FLUJO DE CAJA -->
+        <div class="slide" id="slide-11">
+            <div class="slide-header">
+                <span class="slide-tag">Viabilidad Económica</span>
+                <h2 class="slide-title">Proyección de Flujo de Caja (5 Años)</h2>
+            </div>
+            <div class="slide-body">
+                <table class="proj-table">
+                    <thead>
+                        <tr>
+                            <th>Año</th>
+                            <th>Descripción</th>
+                            <th>Ingresos (PEN)</th>
+                            <th>Egresos (PEN)</th>
+                            <th>Flujo Neto (PEN)</th>
+                            <th>Acumulado (PEN)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Desarrollo inicial y piloto</td>
+                            <td>S/ 5,000</td>
+                            <td>S/ 11,400</td>
+                            <td style="color: var(--accent-red); font-weight: bold;">-S/ 6,400</td>
+                            <td style="color: var(--accent-red); font-weight: bold;">-S/ 6,400</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Operación recurrente SaaS / Consultorías</td>
+                            <td>S/ 19,000</td>
+                            <td>S/ 6,000</td>
+                            <td style="color: var(--accent-green); font-weight: bold;">+S/ 13,000</td>
+                            <td style="color: var(--accent-green); font-weight: bold;">+S/ 6,600</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>Operación estable y soporte</td>
+                            <td>S/ 19,000</td>
+                            <td>S/ 6,000</td>
+                            <td style="color: var(--accent-green); font-weight: bold;">+S/ 13,000</td>
+                            <td style="color: var(--accent-green); font-weight: bold;">+S/ 19,600</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>Expansión de servicios</td>
+                            <td>S/ 19,000</td>
+                            <td>S/ 6,000</td>
+                            <td style="color: var(--accent-green); font-weight: bold;">+S/ 13,000</td>
+                            <td style="color: var(--accent-green); font-weight: bold;">+S/ 32,600</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>Consolidación en el mercado</td>
+                            <td>S/ 19,000</td>
+                            <td>S/ 6,000</td>
+                            <td style="color: var(--accent-green); font-weight: bold;">+S/ 13,000</td>
+                            <td style="color: var(--accent-green); font-weight: bold;">+S/ 45,600</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="slide-footer">
+                <span>Diapositiva 11 de 12</span>
+                <span>Rentabilidad del Proyecto</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 12: CIERRE Y CTA -->
+        <div class="slide" id="slide-12">
+            <div class="slide-header">
+                <span class="slide-tag">Conclusión</span>
+                <h2 class="slide-title">Protege tu Código, Protege tus Finanzas</h2>
+            </div>
+            <div class="slide-body" style="flex-direction: column; text-align: center;">
+                <p style="font-size: 1.5rem; font-weight: 600; color: var(--primary); max-width: 800px; margin-bottom: 20px;">
+                    "Perder datos es perder plata. Asegura tu software en tiempo real hoy mismo."
+                </p>
+                <p style="color: var(--text-muted); max-width: 600px; margin-bottom: 30px;">
+                    OWASP Verificator es la solución de DevSecOps más accesible y portátil del mercado, impulsada por desarrolladores UPT y lista para el mercado corporativo.
+                </p>
+                <div style="background: rgba(15, 23, 42, 0.02); border: 1px solid rgba(15, 23, 42, 0.05); padding: 15px 40px; border-radius: 12px;">
+                    <p style="font-size: 1rem; color: var(--secondary); font-weight: bold;">Securify Software Solutions S.A.C.</p>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 5px;">Tacna – Perú | 2026</p>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Diapositiva 12 de 12</span>
+                <span>¡Muchas Gracias!</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- CONTROLES INFERIORES -->
+    <div class="footer-controls">
+        <div class="nav-buttons">
+            <button class="btn-nav" id="btn-prev" onclick="prevSlide()" disabled>Anterior</button>
+            <button class="btn-nav" id="btn-next" onclick="nextSlide()">Siguiente</button>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <div class="slide-counter" id="slide-num">1 / 12</div>
+    </div>
+
+    <!-- SCRIPT DE TRANSICIÓN INTERACTIVO -->
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 12;
+
+        function showSlide(index) {
+            if (index < 1 || index > totalSlides) return;
+            
+            // Ocultar slide activa
+            document.querySelector('.slide.active').classList.remove('active');
+            
+            // Mostrar nueva slide
+            document.getElementById(`slide-${index}`).classList.add('active');
+            
+            currentSlide = index;
+            
+            // Actualizar botones
+            document.getElementById('btn-prev').disabled = (currentSlide === 1);
+            document.getElementById('btn-next').disabled = (currentSlide === totalSlides);
+            if (currentSlide === totalSlides) {
+                document.getElementById('btn-next').innerText = "Finalizar";
+            } else {
+                document.getElementById('btn-next').innerText = "Siguiente";
+            }
+
+            // Actualizar barra de progreso y número
+            const percent = (currentSlide / totalSlides) * 100;
+            document.getElementById('progress-fill').style.width = `${percent}%`;
+            document.getElementById('slide-num').innerText = `${currentSlide} / ${totalSlides}`;
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                showSlide(currentSlide + 1);
+            } else {
+                alert("Fin de la presentación. ¡Muchos éxitos en la sustentación!");
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        // Soporte para teclado (flechas)
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === ' ') {
+                nextSlide();
+            } else if (event.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+    </script>
+</body>
+</html>

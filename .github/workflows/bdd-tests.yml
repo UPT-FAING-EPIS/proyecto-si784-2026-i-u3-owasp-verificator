@@ -1,0 +1,310 @@
+name: Pruebas BDD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  bdd-tests:
+    name: Pruebas BDD con Behave
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          pip install -r requirements.txt
+          pip install behave
+
+      - name: Crear estructura de features BDD
+        run: |
+          mkdir -p features/steps
+
+          # ── environment.py ──
+          cat > features/environment.py << 'PYEOF'
+          """Configuración de entorno para Behave."""
+          import os
+          os.environ["APP_ENV"] = "test"
+
+          from fastapi.testclient import TestClient
+          from app.main import app
+          from app.store import scan_store
+
+
+          def before_scenario(context, scenario):
+              scan_store.clear()
+              context.client = TestClient(app)
+              context.response = None
+              context.scan = None
+
+
+          def after_scenario(context, scenario):
+              scan_store.clear()
+          PYEOF
+
+          # ── Feature: Análisis de seguridad ──
+          cat > features/analisis.feature << 'GHERKIN'
+          # language: es
+          Característica: Análisis de seguridad de código
+            Como usuario del verificador OWASP
+            Quiero analizar código fuente en busca de vulnerabilidades
+            Para conocer el nivel de cumplimiento de seguridad
+
+            Escenario: Verificar que el servicio está operativo
+              Dado que el servicio está levantado
+              Cuando consulto el endpoint de salud
+              Entonces recibo un estado "ok"
+
+            Escenario: Analizar código con contraseña hardcodeada
+              Dado que el servicio está levantado
+              Cuando envío código con contenido "password = 'secret123'"
+              Entonces el análisis se completa exitosamente
+              Y el score es menor o igual a 100
+              Y se detecta al menos 1 hallazgo
+              Y se detecta la regla "OWASP-A02"
+
+            Escenario: Analizar código con eval inseguro
+              Dado que el servicio está levantado
+              Cuando envío código con contenido "result = eval(user_input)"
+              Entonces el análisis se completa exitosamente
+              Y se detecta la regla "OWASP-A03"
+
+            Escenario: Analizar código limpio sin vulnerabilidades obvias
+              Dado que el servicio está levantado
+              Cuando envío código con contenido "x = 1 + 2"
+              Entonces el análisis se completa exitosamente
+              Y el score es mayor o igual a 50
+
+            Escenario: Rechazar tipo de análisis inválido
+              Dado que el servicio está levantado
+              Cuando envío un análisis con tipo "invalido" y valor "algo"
+              Entonces recibo un error de validación
+          GHERKIN
+
+          # ── Feature: Reportes ──
+          cat > features/reportes.feature << 'GHERKIN'
+          # language: es
+          Característica: Gestión de reportes de análisis
+            Como usuario del verificador OWASP
+            Quiero consultar y exportar reportes de análisis previos
+            Para dar seguimiento a las vulnerabilidades detectadas
+
+            Escenario: Listar reportes cuando no hay análisis
+              Dado que el servicio está levantado
+              Cuando consulto la lista de reportes
+              Entonces recibo una lista vacía
+
+            Escenario: Ver detalle de un reporte después de analizar
+              Dado que el servicio está levantado
+              Y he realizado un análisis de código "password = 'abc'"
+              Cuando consulto el reporte del último análisis
+              Entonces el reporte contiene el mismo score
+              Y el reporte contiene los hallazgos
+
+            Escenario: Exportar reporte en formato JSON
+              Dado que el servicio está levantado
+              Y he realizado un análisis de código "eval(data)"
+              Cuando exporto el reporte en JSON
+              Entonces recibo un JSON con el campo "scan_id"
+              Y recibo un JSON con el campo "findings"
+
+            Escenario: Consultar reporte inexistente
+              Dado que el servicio está levantado
+              Cuando consulto el reporte con ID 99999
+              Entonces recibo un error 404
+
+            Escenario: Generar y validar token API
+              Dado que el servicio está levantado
+              Cuando genero un token para el usuario "tester"
+              Entonces recibo un token válido
+              Y puedo validar el token recibido
+          GHERKIN
+
+          # ── Steps: Análisis ──
+          cat > features/steps/analisis_steps.py << 'PYEOF'
+          """Step definitions para análisis de seguridad."""
+          from behave import given, when, then
+
+
+          @given("que el servicio está levantado")
+          def step_servicio_levantado(context):
+              r = context.client.get("/health")
+              assert r.status_code == 200
+
+
+          @when('consulto el endpoint de salud')
+          def step_consultar_health(context):
+              context.response = context.client.get("/health")
+
+
+          @then('recibo un estado "{estado}"')
+          def step_verificar_estado(context, estado):
+              assert context.response.json()["status"] == estado
+
+
+          @when('envío código con contenido "{codigo}"')
+          def step_enviar_codigo(context, codigo):
+              payload = {"target_type": "code", "target_value": codigo}
+              context.response = context.client.post("/analyze/api", json=payload)
+              if context.response.status_code == 200:
+                  context.scan = context.response.json()
+
+
+          @then("el análisis se completa exitosamente")
+          def step_analisis_exitoso(context):
+              assert context.response.status_code == 200
+              assert context.scan is not None
+
+
+          @then("el score es menor o igual a {valor:d}")
+          def step_score_menor_igual(context, valor):
+              assert context.scan["score"] <= valor
+
+
+          @then("el score es mayor o igual a {valor:d}")
+          def step_score_mayor_igual(context, valor):
+              assert context.scan["score"] >= valor
+
+
+          @then("se detecta al menos {cantidad:d} hallazgo")
+          def step_detectar_hallazgos(context, cantidad):
+              assert len(context.scan["findings"]) >= cantidad
+
+
+          @then('se detecta la regla "{regla}"')
+          def step_detectar_regla(context, regla):
+              rule_ids = {f["rule_id"] for f in context.scan["findings"]}
+              assert regla in rule_ids, f"Regla {regla} no encontrada en {rule_ids}"
+
+
+          @when('envío un análisis con tipo "{tipo}" y valor "{valor}"')
+          def step_enviar_tipo_invalido(context, tipo, valor):
+              payload = {"target_type": tipo, "target_value": valor}
+              context.response = context.client.post("/analyze/api", json=payload)
+
+
+          @then("recibo un error de validación")
+          def step_error_validacion(context):
+              assert context.response.status_code == 422
+          PYEOF
+
+          # ── Steps: Reportes ──
+          cat > features/steps/reportes_steps.py << 'PYEOF'
+          """Step definitions para gestión de reportes."""
+          from behave import given, when, then
+
+
+          @when("consulto la lista de reportes")
+          def step_listar_reportes(context):
+              context.response = context.client.get("/reports/api")
+
+
+          @then("recibo una lista vacía")
+          def step_lista_vacia(context):
+              assert context.response.status_code == 200
+              assert context.response.json() == []
+
+
+          @given('he realizado un análisis de código "{codigo}"')
+          def step_realizar_analisis(context, codigo):
+              r = context.client.post("/analyze/api", json={
+                  "target_type": "code",
+                  "target_value": codigo,
+              })
+              assert r.status_code == 200
+              context.scan = r.json()
+
+
+          @when("consulto el reporte del último análisis")
+          def step_consultar_reporte(context):
+              scan_id = context.scan["id"]
+              context.response = context.client.get(f"/reports/api/{scan_id}")
+
+
+          @then("el reporte contiene el mismo score")
+          def step_mismo_score(context):
+              assert context.response.status_code == 200
+              assert context.response.json()["score"] == context.scan["score"]
+
+
+          @then("el reporte contiene los hallazgos")
+          def step_contiene_hallazgos(context):
+              data = context.response.json()
+              assert "findings" in data
+
+
+          @when("exporto el reporte en JSON")
+          def step_exportar_json(context):
+              scan_id = context.scan["id"]
+              context.response = context.client.get(f"/reports/{scan_id}/export-json")
+
+
+          @then('recibo un JSON con el campo "{campo}"')
+          def step_json_tiene_campo(context, campo):
+              assert context.response.status_code == 200
+              assert campo in context.response.json()
+
+
+          @when("consulto el reporte con ID {scan_id:d}")
+          def step_reporte_por_id(context, scan_id):
+              context.response = context.client.get(f"/reports/api/{scan_id}")
+
+
+          @then("recibo un error 404")
+          def step_error_404(context):
+              assert context.response.status_code == 404
+
+
+          @when('genero un token para el usuario "{usuario}"')
+          def step_generar_token(context, usuario):
+              context.response = context.client.post("/api/token", data={"username": usuario})
+              if context.response.status_code == 200:
+                  context.token = context.response.json()["token"]
+
+
+          @then("recibo un token válido")
+          def step_token_valido(context):
+              assert context.response.status_code == 200
+              assert "token" in context.response.json()
+
+
+          @then("puedo validar el token recibido")
+          def step_validar_token(context):
+              r = context.client.get("/api/validate-token", headers={"x-api-key": context.token})
+              assert r.status_code == 200
+          PYEOF
+
+      - name: Ejecutar pruebas BDD
+        env:
+          APP_ENV: test
+        run: |
+          python -m behave features/ \
+            --format pretty \
+            --no-capture \
+            --junit \
+            --junit-directory bdd-results/
+
+      - name: Publicar resumen
+        if: always()
+        run: |
+          echo "## 🥒 Resultados de Pruebas BDD" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          python -m behave features/ --format summary --dry-run 2>/dev/null || true
+
+      - name: Subir resultados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-bdd
+          path: bdd-results/
+          retention-days: 15

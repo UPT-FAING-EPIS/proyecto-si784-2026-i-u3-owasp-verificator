@@ -1,0 +1,226 @@
+name: Pruebas de Integración
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  integration-tests:
+    name: Pruebas de Integración
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          pip install -r requirements.txt
+          pip install pytest-cov
+
+      - name: Crear tests de integración
+        run: |
+          cat > tests/test_integration.py << 'PYEOF'
+          """
+          Pruebas de integración — validan flujos completos de la API
+          atravesando múltiples capas (router → service → scanner → store).
+          """
+          import os
+          os.environ["APP_ENV"] = "test"
+
+          import pytest
+          from fastapi.testclient import TestClient
+          from app.main import app
+          from app.store import scan_store
+
+          client = TestClient(app)
+
+
+          @pytest.fixture(autouse=True)
+          def limpiar_store():
+              scan_store.clear()
+              yield
+              scan_store.clear()
+
+
+          # ── Health & estado del servicio ──
+
+          class TestHealthIntegration:
+              def test_health_retorna_ok(self):
+                  r = client.get("/health")
+                  assert r.status_code == 200
+                  data = r.json()
+                  assert data["status"] == "ok"
+                  assert "env" in data
+
+              def test_health_env_es_test(self):
+                  r = client.get("/health")
+                  assert r.json()["env"] == "test"
+
+
+          # ── Flujo completo: análisis de código ──
+
+          class TestFlujoAnalisisCodigo:
+              def test_analizar_codigo_inseguro_y_ver_reporte(self):
+                  payload = {
+                      "target_type": "code",
+                      "target_value": "password = 'secret123'\\nresult = eval(user_input)",
+                  }
+                  r = client.post("/analyze/api", json=payload)
+                  assert r.status_code == 200
+                  scan = r.json()
+
+                  assert scan["target_type"] == "code"
+                  assert scan["score"] <= 100
+                  assert len(scan["findings"]) >= 1
+
+                  # Ver reporte del mismo scan
+                  r2 = client.get(f"/reports/api/{scan['id']}")
+                  assert r2.status_code == 200
+                  assert r2.json()["id"] == scan["id"]
+                  assert r2.json()["score"] == scan["score"]
+
+              def test_analizar_codigo_limpio(self):
+                  payload = {
+                      "target_type": "code",
+                      "target_value": "x = 1 + 2\\nprint(x)",
+                  }
+                  r = client.post("/analyze/api", json=payload)
+                  assert r.status_code == 200
+                  scan = r.json()
+                  assert scan["score"] >= 50
+
+              def test_target_type_invalido(self):
+                  payload = {
+                      "target_type": "invalido",
+                      "target_value": "algo",
+                  }
+                  r = client.post("/analyze/api", json=payload)
+                  assert r.status_code == 422
+
+
+          # ── Flujo completo: listado de reportes ──
+
+          class TestListadoReportes:
+              def test_listar_reportes_vacio(self):
+                  r = client.get("/reports/api")
+                  assert r.status_code == 200
+                  assert r.json() == []
+
+              def test_listar_reportes_despues_de_analisis(self):
+                  # Crear un scan
+                  client.post("/analyze/api", json={
+                      "target_type": "code",
+                      "target_value": "password = 'abc'",
+                  })
+                  r = client.get("/reports/api")
+                  assert r.status_code == 200
+                  assert len(r.json()) == 1
+
+              def test_reporte_inexistente(self):
+                  r = client.get("/reports/api/99999")
+                  assert r.status_code == 404
+
+
+          # ── Flujo completo: exportar JSON ──
+
+          class TestExportarJSON:
+              def test_exportar_json_exitoso(self):
+                  r1 = client.post("/analyze/api", json={
+                      "target_type": "code",
+                      "target_value": "eval(data)",
+                  })
+                  scan_id = r1.json()["id"]
+
+                  r2 = client.get(f"/reports/{scan_id}/export-json")
+                  assert r2.status_code == 200
+                  data = r2.json()
+                  assert data["scan_id"] == scan_id
+                  assert "findings" in data
+                  assert "created_at" in data
+
+
+          # ── Flujo completo: token API ──
+
+          class TestTokenAPI:
+              def test_generar_y_validar_token(self):
+                  r1 = client.post("/api/token", data={"username": "testuser"})
+                  assert r1.status_code == 200
+                  token = r1.json()["token"]
+
+                  r2 = client.get("/api/validate-token", headers={"x-api-key": token})
+                  assert r2.status_code == 200
+
+              def test_token_invalido(self):
+                  r = client.get("/api/validate-token", headers={"x-api-key": "token-falso"})
+                  assert r.status_code == 401
+
+              def test_sin_token(self):
+                  r = client.get("/api/validate-token")
+                  assert r.status_code == 401
+
+
+          # ── Páginas HTML cargan correctamente ──
+
+          class TestPaginasHTML:
+              def test_dashboard_carga(self):
+                  r = client.get("/")
+                  assert r.status_code == 200
+                  assert "text/html" in r.headers.get("content-type", "")
+
+              def test_pagina_analisis_carga(self):
+                  r = client.get("/analyze")
+                  assert r.status_code == 200
+
+              def test_pagina_about_carga(self):
+                  r = client.get("/about")
+                  assert r.status_code == 200
+
+              def test_pagina_owasp_carga(self):
+                  r = client.get("/owasp")
+                  assert r.status_code == 200
+
+              def test_pagina_api_tutorial_carga(self):
+                  r = client.get("/api-tutorial")
+                  assert r.status_code == 200
+          PYEOF
+
+      - name: Ejecutar pruebas de integración
+        env:
+          APP_ENV: test
+        run: |
+          python -m pytest tests/test_integration.py \
+            --cov=app \
+            --cov-report=term-missing \
+            -v \
+            --tb=short \
+            --junitxml=integration-results.xml
+
+      - name: Publicar resumen
+        if: always()
+        run: |
+          echo "## 🔗 Resultados de Pruebas de Integración" >> $GITHUB_STEP_SUMMARY
+          if [ -f integration-results.xml ]; then
+            TESTS=$(grep -oP 'tests="\K[^"]+' integration-results.xml || echo "0")
+            FAILURES=$(grep -oP 'failures="\K[^"]+' integration-results.xml || echo "0")
+            echo "| Métrica | Valor |" >> $GITHUB_STEP_SUMMARY
+            echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+            echo "| Tests ejecutados | $TESTS |" >> $GITHUB_STEP_SUMMARY
+            echo "| Fallos | $FAILURES |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Subir resultados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-integracion
+          path: integration-results.xml
+          retention-days: 15

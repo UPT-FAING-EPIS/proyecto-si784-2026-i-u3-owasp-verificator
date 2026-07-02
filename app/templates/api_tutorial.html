@@ -1,0 +1,483 @@
+{% extends 'base.html' %}
+{% block content %}
+{% set WEB_URL = 'http://38.250.116.71:8000' %}
+{% set API_URL = 'http://38.250.116.71:8000' %}
+{% set EXT_ID = 'Gerardo95.owasp-verificator' %}
+{% set EXT_URL = 'https://marketplace.visualstudio.com/items?itemName=Gerardo95.owasp-verificator' %}
+{% set EXT_VSCODE = 'vscode:extension/Gerardo95.owasp-verificator' %}
+{% set EXT_CURSOR = 'cursor:extension/Gerardo95.owasp-verificator' %}
+
+<link rel="stylesheet" href="/static/css/api_tutorial.css?v={{ request.app.state.asset_version }}">
+
+<section class="hero">
+    <div>
+        <p class="eyebrow">Integración</p>
+        <h2>Integración y Herramientas</h2>
+        <p>Aprende a conectar el Verificador OWASP con tu entorno de desarrollo, scripts de automatización y agentes de IA.</p>
+    </div>
+</section>
+
+<div class="ig-wrap">
+  <!-- TABS -->
+  <div class="ig-tabs">
+    <button class="ig-tab-btn active" onclick="igTab(this,'vscode')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+      <span>Extensión IDE</span>
+    </button>
+    <button class="ig-tab-btn" onclick="igTab(this,'skills')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+      <span>Skills de IA</span>
+    </button>
+    <button class="ig-tab-btn" onclick="igTab(this,'libreapi')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span>API y Claves</span>
+    </button>
+  </div>
+
+  <!-- PANEL 1: VS CODE -->
+  <div class="ig-panel active" id="panel-vscode">
+    <div class="ig-info">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span><strong>Análisis en el IDE:</strong> La extensión analiza tu código de forma automática mientras lo escribes, subrayando vulnerabilidades directamente en el editor.</span>
+    </div>
+
+    <div class="ig-section-title">Elige tu editor e instálala</div>
+
+    <div class="ig-ide-card">
+      <div class="ig-ide-head">
+        <div class="ig-ide-logo" style="background:rgba(0,122,204,0.1); color: #007acc;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 19.988V4.013a1.5 1.5 0 0 0-.85-1.426zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/></svg>
+        </div>
+        <div>
+          <div class="ig-ide-name">Visual Studio Code</div>
+          <div class="ig-ide-sub">OWASP Verificator v1.0.3 · Publicado por Gerardo95</div>
+        </div>
+      </div>
+      <ul class="ig-feature-list">
+        <li>Análisis en tiempo real mientras escribes</li>
+        <li>Subrayado de código vulnerable local</li>
+        <li>Panel lateral de hallazgos del espacio de trabajo</li>
+        <li>Visualización de mitigación y remediación de OWASP</li>
+      </ul>
+      <div class="ig-btn-row">
+        <a class="button button-success" href="{{ EXT_VSCODE }}">Instalar en VS Code</a>
+        <a class="button button-secondary" href="{{ EXT_URL }}" target="_blank">Ver en Marketplace</a>
+        <button class="button button-secondary" onclick="copyText('{{ EXT_ID }}', () => { const original = this.innerHTML; this.innerHTML = '¡Copiado!'; setTimeout(() => this.innerHTML = original, 2000); })">Copiar ID de Extensión</button>
+      </div>
+    </div>
+
+    <div class="ig-ide-card">
+      <div class="ig-ide-head">
+        <div class="ig-ide-logo" style="background:rgba(124,58,237,0.1); color: #7c3aed;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3z"/><path d="M6 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3z"/></svg>
+        </div>
+        <div>
+          <div class="ig-ide-name">Otras IDEs (Open VSX)</div>
+          <div class="ig-ide-sub">Cursor, Windsurf, VSCodium, etc.</div>
+        </div>
+      </div>
+      <p style="font-size:0.825rem; color:var(--muted); margin-bottom:12px; line-height:1.55;">
+        Compatible de forma nativa. La extensión está publicada en el registro libre <strong>Open VSX</strong> para dar soporte completo a entornos de desarrollo alternativos. Puedes buscar "OWASP Verificator" en el marketplace de tu editor o instalarla directamente desde Open VSX.
+      </p>
+      <div class="ig-btn-row">
+        <a class="button button-secondary" href="https://open-vsx.org/extension/Gerardo95/owasp-verificator" target="_blank" rel="noopener noreferrer">Ver en Open VSX</a>
+      </div>
+    </div>
+
+    <hr class="ig-divider">
+
+    <div class="ig-section-title">Instalación paso a paso</div>
+
+    <div class="ig-steps">
+      <div class="ig-step">
+        <div class="ig-step-num">1</div>
+        <div class="ig-step-body">
+          <div class="ig-step-title">Abre el Administrador de Extensiones</div>
+          <div class="ig-step-desc">Haz clic en el panel lateral de Extensiones (o presiona Ctrl+Shift+X).</div>
+          <div class="ig-code-wrap">
+            <div class="ig-code-head">
+              <span class="ig-code-lang">Atajo de Teclado</span>
+              <button class="ig-copy-btn" onclick="igCopy(this)">Copiar</button>
+            </div>
+            <pre class="ig-code-pre">Ctrl + Shift + X</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="ig-step">
+        <div class="ig-step-num">2</div>
+        <div class="ig-step-body">
+          <div class="ig-step-title">Busca e Instala</div>
+          <div class="ig-step-desc">Busca <strong>OWASP Verificator</strong>, selecciona la extensión publicada por Gerardo95 y haz clic en Instalar.</div>
+          <div class="ig-code-wrap">
+            <div class="ig-code-head">
+              <span class="ig-code-lang">ID del Paquete</span>
+              <button class="ig-copy-btn" onclick="igCopy(this)">Copiar</button>
+            </div>
+            <pre class="ig-code-pre">{{ EXT_ID }}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="ig-step">
+        <div class="ig-step-num">3</div>
+        <div class="ig-step-body">
+          <div class="ig-step-title">Auditoría en Progreso</div>
+          <div class="ig-step-desc">La extensión analizará automáticamente los archivos abiertos. Los problemas de seguridad se destacarán con marcadores de severidad directamente sobre las líneas de código afectadas.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: SKILLS PARA IA -->
+  <div class="ig-panel" id="panel-skills">
+    <div class="ig-info">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span><strong>Skills de IA:</strong> Permite que agentes inteligentes (ChatGPT, Claude, Gemini) invoquen de forma autónoma el motor de análisis y reporten vulnerabilidades a tus desarrolladores.</span>
+    </div>
+
+    <div class="ig-success">
+      <strong style="color:var(--success);">Servidor Activo en: http://38.250.116.71:8000</strong><br>
+      <span style="font-size:.825rem; opacity:.9;">La API y los esquemas necesarios están disponibles en producción, listos para integrarse como funciones o plugins.</span>
+    </div>
+
+    <div class="ig-section-title">Esquema de Funciones Disponibles</div>
+    <div class="ig-skills-grid">
+      <div class="ig-skill-card">
+        <div class="ig-skill-head">
+          <span class="ig-skill-name">skill_analyze_url</span>
+          <span class="ig-method-pill ig-method-post">POST</span>
+        </div>
+        <div class="ig-skill-desc">Analiza una URL buscando cabeceras HTTP faltantes (CSP, HSTS, CORS) e información sensible expuesta.</div>
+        <div class="ig-skill-endpoint">POST /analyze/api</div>
+      </div>
+      <div class="ig-skill-card">
+        <div class="ig-skill-head">
+          <span class="ig-skill-name">skill_analyze_code</span>
+          <span class="ig-method-pill ig-method-post">POST</span>
+        </div>
+        <div class="ig-skill-desc">Realiza un escaneo estático de código buscando SQLi, XSS, secretos hardcodeados y funciones prohibidas.</div>
+        <div class="ig-skill-endpoint">POST /analyze/api</div>
+      </div>
+      <div class="ig-skill-card">
+        <div class="ig-skill-head">
+          <span class="ig-skill-name">skill_analyze_github</span>
+          <span class="ig-method-pill ig-method-post">POST</span>
+        </div>
+        <div class="ig-skill-desc">Descarga y audita un repositorio GitHub. Soporta repos privados utilizando el token guardado en cuenta.</div>
+        <div class="ig-skill-endpoint">POST /analyze/api</div>
+      </div>
+      <div class="ig-skill-card">
+        <div class="ig-skill-head">
+          <span class="ig-skill-name">skill_get_report</span>
+          <span class="ig-method-pill ig-method-get">GET</span>
+        </div>
+        <div class="ig-skill-desc">Recupera el historial y listado de hallazgos para un reporte de escaneo específico mediante su ID.</div>
+        <div class="ig-skill-endpoint">GET /reports/api/{id}</div>
+      </div>
+    </div>
+
+    <hr class="ig-divider">
+
+    <div class="ig-section-title">Guía de Configuración de Agentes</div>
+    <div class="ig-steps">
+      <div class="ig-step">
+        <div class="ig-step-num">1</div>
+        <div class="ig-step-body">
+          <div class="ig-step-title">Generación del Schema y Autenticación</div>
+          <div class="ig-step-desc">
+            Carga el esquema OpenAPI del servidor en tu agente (disponible en <a href="/openapi.json" target="_blank" style="color: var(--accent-2); text-decoration: none; font-weight:600;">/openapi.json</a>).
+            Configura la cabecera de autenticación <code>X-API-Key</code> usando el token del servidor que puedes generar en la pestaña de API.
+          </div>
+        </div>
+      </div>
+      
+      <div class="ig-step">
+        <div class="ig-step-num">2</div>
+        <div class="ig-step-body">
+          <div class="ig-step-title">Ejemplo en Python (SDK de OpenAI)</div>
+          <div class="ig-step-desc">Registra las funciones y utiliza llamadas a herramientas (Tool Calling) en tus scripts de automatización:</div>
+          <div class="ig-code-wrap">
+            <div class="ig-code-head">
+              <span class="ig-code-lang">Python</span>
+              <button class="ig-copy-btn" onclick="igCopy(this)">Copiar</button>
+            </div>
+            <pre class="ig-code-pre">import openai, requests
+
+BASE_URL = "http://38.250.116.71:8000"
+API_KEY = "TU_TOKEN_API"
+
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "analizar_codigo_owasp",
+        "description": "Busca vulnerabilidades OWASP en un bloque de codigo o URL",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "target_type": {"type": "string", "enum": ["code", "url"]},
+                "target_value": {"type": "string", "description": "El codigo fuente o la URL web"}
+            },
+            "required": ["target_type", "target_value"]
+        }
+    }
+}]
+
+client = openai.OpenAI(api_key="TU_OPENAI_KEY")
+# El modelo invocará automáticamente la herramienta cuando reciba solicitudes de auditoria.</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="ig-step">
+        <div class="ig-step-num">3</div>
+        <div class="ig-step-body">
+          <div class="ig-step-title">Ejemplo en Python (SDK de Anthropic Claude)</div>
+          <div class="ig-step-desc">Define y registra la función utilizando la especificación de herramientas de Claude:</div>
+          <div class="ig-code-wrap">
+            <div class="ig-code-head">
+              <span class="ig-code-lang">Python (Anthropic)</span>
+              <button class="ig-copy-btn" onclick="igCopy(this)">Copiar</button>
+            </div>
+            <pre class="ig-code-pre">import anthropic
+
+client = anthropic.Anthropic(api_key="TU_CLAUDE_KEY")
+
+message = client.messages.create(
+    model="claude-3-5-sonnet-latest",
+    max_tokens=1024,
+    tools=[{
+        "name": "analizar_codigo_owasp",
+        "description": "Analiza codigo fuente buscando vulnerabilidades OWASP.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "target_type": {"type": "string", "enum": ["code", "url"]},
+                "target_value": {"type": "string", "description": "El codigo fuente o la URL web"}
+            },
+            "required": ["target_type", "target_value"]
+        }
+    }],
+    messages=[{"role": "user", "content": "Audita este codigo: password = '123'"}]
+)</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="ig-step">
+        <div class="ig-step-num">4</div>
+        <div class="ig-step-body">
+          <div class="ig-step-title">Ejemplo en Python (SDK de Google Gemini)</div>
+          <div class="ig-step-desc">Registra las herramientas utilizando la declaración nativa de funciones en Gemini:</div>
+          <div class="ig-code-wrap">
+            <div class="ig-code-head">
+              <span class="ig-code-lang">Python (Google GenAI)</span>
+              <button class="ig-copy-btn" onclick="igCopy(this)">Copiar</button>
+            </div>
+            <pre class="ig-code-pre">import google.generativeai as genai
+
+genai.configure(api_key="TU_GEMINI_KEY")
+
+def analizar_codigo_owasp(target_type: str, target_value: str) -> str:
+    """Busca vulnerabilidades OWASP en un bloque de codigo o URL.
+    
+    Args:
+        target_type: Tipo de objetivo ('code' o 'url').
+        target_value: El codigo fuente o la URL web a escanear.
+    """
+    # LLamada HTTP al endpoint POST /analyze/api
+    return "Resultado del analisis..."
+
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-pro",
+    tools=[analizar_codigo_owasp]
+)
+
+chat = model.start_chat(enable_automatic_function_calling=True)
+response = chat.send_message("Audita este codigo: password = '123'")</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: API / CLAVES -->
+  <div class="ig-panel" id="panel-libreapi">
+    <section class="card" style="margin-bottom: 28px;">
+        <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Claves de Acceso a la API</span>
+        </h3>
+        <p style="color: var(--text-light); font-size: 0.9rem; line-height: 1.6; margin-bottom: 20px;">
+            Genera un token API único para autenticar tus herramientas externas (CLI, Scripts, Webhooks) enviándolo en la cabecera <code>X-API-Key</code> en cada petición HTTP.
+        </p>
+
+        <form id="tokenForm" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 240px;">
+                <label>Nombre de Usuario / ID Aplicación</label>
+                <input type="text" id="usernameInput" placeholder="p.ej: cli-seguridad, analista123" required>
+            </div>
+            <button class="button" type="submit" style="height: 38px;">Generar Token</button>
+        </form>
+
+        <div id="tokenResult" style="margin-top: 20px;"></div>
+    </section>
+
+    <!-- API endpoints reference -->
+    <section class="card">
+        <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span>Referencia de Endpoints</span>
+        </h3>
+        <div class="table-container" style="margin-top: 16px;">
+            <table class="table" style="font-size: 0.85rem;">
+                <thead>
+                    <tr>
+                        <th style="padding: 10px 14px;">Método</th>
+                        <th style="padding: 10px 14px;">Endpoint</th>
+                        <th style="padding: 10px 14px;">Descripción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="color: var(--accent); font-weight: 700; padding: 12px 14px;">POST</td>
+                        <td style="font-family: var(--font-code); color: var(--text); padding: 12px 14px;">/analyze/api</td>
+                        <td style="padding: 12px 14px;">Ejecuta un análisis de código o URL activa.</td>
+                    </tr>
+                    <tr>
+                        <td style="color: var(--success); font-weight: 700; padding: 12px 14px;">GET</td>
+                        <td style="font-family: var(--font-code); color: var(--text); padding: 12px 14px;">/reports/api/{id}</td>
+                        <td style="padding: 12px 14px;">Obtiene detalles de los hallazgos para un escaneo.</td>
+                    </tr>
+                    <tr>
+                        <td style="color: var(--success); font-weight: 700; padding: 12px 14px;">GET</td>
+                        <td style="font-family: var(--font-code); color: var(--text); padding: 12px 14px;">/health</td>
+                        <td style="padding: 12px 14px;">Valida el estado del servicio y estadísticas generales.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Usage Code blocks -->
+    <section class="card">
+        <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            <span>Ejemplo de Llamada (Python)</span>
+        </h3>
+        <div class="ig-code-wrap">
+            <div class="ig-code-head">
+                <span class="ig-code-lang">Python Requests</span>
+                <button class="ig-copy-btn" onclick="igCopy(this)">Copiar</button>
+            </div>
+            <pre class="ig-code-pre">import requests
+
+url = "http://38.250.116.71:8000/analyze/api"
+headers = {
+    "X-API-Key": "TU_TOKEN_API",
+    "Content-Type": "application/json"
+}
+payload = {
+    "target_type": "code",
+    "target_value": "password = 'hardcoded_value_secret'"
+}
+
+response = requests.post(url, json=payload, headers=headers)
+print(response.json())</pre>
+        </div>
+    </section>
+  </div>
+</div>
+
+<script>
+  function copyText(text, successCallback) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(successCallback).catch(() => {
+        fallbackCopyText(text, successCallback);
+      });
+    } else {
+      fallbackCopyText(text, successCallback);
+    }
+  }
+
+  function fallbackCopyText(text, successCallback) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      const successful = document.execCommand('copy');
+      if (successful && successCallback) {
+        successCallback();
+      }
+    } catch (err) {
+      console.error('Fallback copy failed', err);
+    }
+    document.body.removeChild(textArea);
+  }
+
+  function igTab(btn, name) {
+    document.querySelectorAll('.ig-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.ig-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + name).classList.add('active');
+  }
+
+  function igCopy(btn) {
+    const pre = btn.closest('.ig-code-head').nextElementSibling;
+    const text = pre.innerText || pre.textContent;
+    copyText(text, () => {
+      btn.textContent = 'Copiado';
+      btn.classList.add('ok');
+      setTimeout(() => {
+        btn.textContent = 'Copiar';
+        btn.classList.remove('ok');
+      }, 1800);
+    });
+  }
+
+  const tokenForm = document.getElementById('tokenForm');
+  if (tokenForm) {
+      tokenForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          const username = document.getElementById('usernameInput').value.trim();
+          if (!username) return;
+          
+          try {
+              const formData = new FormData();
+              formData.append('username', username);
+              
+              const response = await fetch('/api/token', {
+                  method: 'POST',
+                  body: formData
+              });
+              
+              if (!response.ok) {
+                  const errData = await response.json();
+                  alert('Error: ' + (errData.detail || 'No se pudo generar el token'));
+                  return;
+              }
+              
+               const data = await response.json();
+              const resultDiv = document.getElementById('tokenResult');
+              resultDiv.innerHTML = `
+                  <div style="background: rgba(16, 185, 129, 0.04); border: 1px solid var(--success); border-radius: var(--radius-sm); padding: 16px; margin-top: 16px;">
+                      <p style="color: var(--success); font-weight: 600; font-size: 0.85rem; margin-bottom: 8px;">Token generado para: <strong>${data.token_user || username}</strong></p>
+                      <div class="ig-token-display-box">
+                          <code>${data.generated_token || data.token}</code>
+                          <button onclick="copyText('${data.generated_token || data.token}', () => alert('Token copiado'));" style="position: absolute; right: 8px; top: 5px; height: 26px; padding: 0 10px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">Copiar</button>
+                      </div>
+                      <p style="color: var(--muted); font-size: 0.775rem; margin: 0;">Guarda este token en un lugar seguro. No podrás volverlo a visualizar.</p>
+                  </div>
+              `;
+          } catch(err) {
+              alert('Error: ' + err.message);
+          }
+      });
+  }
+</script>
+{% endblock %}

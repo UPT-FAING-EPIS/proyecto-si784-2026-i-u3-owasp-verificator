@@ -1,0 +1,71 @@
+name: Pruebas de Mutantes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  mutation-tests:
+    name: Pruebas de Mutación con Mutmut
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          pip install -r requirements.txt
+          pip install mutmut
+
+      - name: Ejecutar pruebas de mutación en scanner.py
+        env:
+          APP_ENV: test
+        run: |
+          mutmut run \
+            --paths-to-mutate=app/services/scanner.py \
+            --tests-dir=tests/ \
+            --runner="python -m pytest tests/test_scanner.py -x -q" \
+            --no-progress || true
+
+      - name: Generar reporte de mutantes
+        if: always()
+        run: |
+          echo "## 🧬 Resultados de Pruebas de Mutación" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          mutmut results || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Resumen" >> $GITHUB_STEP_SUMMARY
+          mutmut results 2>/dev/null | head -5 >> $GITHUB_STEP_SUMMARY || true
+
+      - name: Mostrar mutantes sobrevivientes
+        if: always()
+        run: |
+          echo "=== Mutantes sobrevivientes ==="
+          mutmut results || true
+
+      - name: Exportar reporte HTML de mutmut
+        if: always()
+        run: |
+          mutmut html || true
+
+      - name: Subir reporte de mutación
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-mutantes
+          path: |
+            html/
+            .mutmut-cache
+          retention-days: 15

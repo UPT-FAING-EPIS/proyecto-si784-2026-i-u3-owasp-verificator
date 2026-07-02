@@ -1,0 +1,697 @@
+{% extends 'base.html' %}
+{% block content %}
+<link rel="stylesheet" href="/static/css/wiki.css?v={{ request.app.state.asset_version }}">
+
+
+<section class="hero">
+    <div>
+        <p class="eyebrow">Guía de Seguridad Interactiva</p>
+        <h2>Wiki de Cumplimiento OWASP</h2>
+        <p>Aprende de forma simple qué significan las vulnerabilidades y cómo escribir código seguro.</p>
+    </div>
+</section>
+
+<div class="wiki-container">
+    <!-- Sidebar Navigation -->
+    <aside class="wiki-sidebar">
+        <h4>Categorías OWASP</h4>
+        <nav>
+            <ul class="wiki-nav-list">
+                <li class="wiki-nav-item"><a href="#A01">A01: Control de Acceso</a></li>
+                <li class="wiki-nav-item"><a href="#A02">A02: Fallas Criptográficas</a></li>
+                <li class="wiki-nav-item"><a href="#A03">A03: Inyección</a></li>
+                <li class="wiki-nav-item"><a href="#A04">A04: Diseño Inseguro</a></li>
+                <li class="wiki-nav-item"><a href="#A05">A05: Configuración Incorrecta</a></li>
+                <li class="wiki-nav-item"><a href="#A06">A06: Componentes Desactualizados</a></li>
+                <li class="wiki-nav-item"><a href="#A07">A07: Fallas de Autenticación</a></li>
+                <li class="wiki-nav-item"><a href="#A08">A08: Integridad de Software</a></li>
+                <li class="wiki-nav-item"><a href="#A09">A09: Logging y Monitoreo</a></li>
+                <li class="wiki-nav-item"><a href="#A10">A10: Server-Side Request (SSRF)</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Wiki Content -->
+    <main class="wiki-content">
+        
+        <!-- ==================== A01 ==================== -->
+        <article class="card wiki-card" id="A01">
+            <h2 style="font-family: var(--font-title); font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--panel-border); padding-bottom: 12px;">
+                <span>A01: Control de Acceso Roto</span>
+                <span class="severity-high" style="font-size: 0.8rem; padding: 4px 10px;">RIESGO ALTO</span>
+            </h2>
+            <p style="margin-top: 14px; color: var(--text-light);">
+                <strong>¿Qué significa?</strong> Ocurre cuando el sistema no valida si un usuario realmente tiene permiso para acceder a una sección, ruta o dato específico. Quien no tiene privilegios logra evadir las restricciones.
+            </p>
+
+            <!-- Subrule: A01-NO-AUTH -->
+            <div class="wiki-subrule-box" id="OWASP-A01-NO-AUTH">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Endpoints de API sin Autenticación</span>
+                    <span class="wiki-subrule-id">OWASP-A01-NO-AUTH</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Dejar una función o ruta del servidor expuesta públicamente a Internet por descuido, sin requerir tokens o credenciales de inicio de sesión.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (Python)</div>
+                        <pre class="code-box-body">@app.get("/api/user/private-data")
+def get_private_data():
+    # CUALQUIER persona en internet puede consultar esto
+    return db.fetch_secrets()</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (Python)</div>
+                        <pre class="code-box-body">@app.get("/api/user/private-data", dependencies=[Depends(auth_verifier)])
+def get_private_data(current_user: User = Depends(get_current_user)):
+    # Solo usuarios logueados válidos pueden acceder
+    return db.fetch_secrets_for(current_user.id)</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subrule: A01-HARDCODED-ROLE -->
+            <div class="wiki-subrule-box" id="OWASP-A01-HARDCODED-ROLE">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Comprobación de Rol Hardcodeada</span>
+                    <span class="wiki-subrule-id">OWASP-A01-HARDCODED-ROLE</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Comparar strings de roles estáticos directamente en el código de negocio, dificultando la auditoría y exponiendo a fallas por manipulación del cliente.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (JavaScript)</div>
+                        <pre class="code-box-body">if (user.role === 'admin') {
+    // Si el usuario edita su perfil local en el navegador,
+    // podría cambiar su rol a 'admin' y saltar la validación
+    showAdminDashboard();
+}</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (JavaScript)</div>
+                        <pre class="code-box-body">// Consultar la base de datos o verificar firma criptográfica del JWT en el backend
+const hasPermission = await checkUserPermission(user.id, 'ACCESS_ADMIN_PANEL');
+if (hasPermission) {
+    showAdminDashboard();
+}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subrule: A01-OPEN-CIDR -->
+            <div class="wiki-subrule-box" id="OWASP-A01-OPEN-CIDR">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Acceso de Red Totalmente Abierto (CIDR 0.0.0.0/0)</span>
+                    <span class="wiki-subrule-id">OWASP-A01-OPEN-CIDR</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Configurar accesos o reglas de firewall abiertos a todo internet (0.0.0.0/0) para servicios que manejan datos sensibles o administrativos.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (Terraform)</div>
+                        <pre class="code-box-body">resource "aws_security_group_rule" "inbound_all" {
+  type        = "ingress"
+  from_port   = 22
+  to_port     = 22
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"] # Puerto SSH abierto a todo el mundo
+}</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (Terraform)</div>
+                        <pre class="code-box-body">resource "aws_security_group_rule" "inbound_ssh" {
+  type        = "ingress"
+  from_port   = 22
+  to_port     = 22
+  protocol    = "tcp"
+  cidr_blocks = ["203.0.113.50/32"] # SSH limitado a la IP de la VPN
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- ==================== A02 ==================== -->
+        <article class="card wiki-card" id="A02">
+            <h2 style="font-family: var(--font-title); font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--panel-border); padding-bottom: 12px;">
+                <span>A02: Fallas Criptográficas</span>
+                <span class="severity-high" style="font-size: 0.8rem; padding: 4px 10px;">RIESGO ALTO</span>
+            </h2>
+            <p style="margin-top: 14px; color: var(--text-light);">
+                <strong>¿Qué significa?</strong> Proteger de forma deficiente la información confidencial (como claves, contraseñas, tokens o números de tarjeta) al transmitirla o almacenarla, usando algoritmos obsoletos o dejándola en texto plano.
+            </p>
+
+            <!-- Subrule: A02-HARDCODED-SECRET -->
+            <div class="wiki-subrule-box" id="OWASP-A02-HARDCODED-SECRET">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Secretos o Credenciales Quemados (Hardcoded)</span>
+                    <span class="wiki-subrule-id">OWASP-A02-HARDCODED-SECRET</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Escribir contraseñas, llaves de API o secretos de cifrado directamente en variables del código fuente que van al repositorio.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (JavaScript)</div>
+                        <pre class="code-box-body">// Si subes esto a GitHub, cualquiera sabrá tu contraseña
+const DB_PASSWORD = "SuperPasswordSegura123";
+const stripe = require('stripe')('sk_test_51...api_key');</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (JavaScript)</div>
+                        <pre class="code-box-body">// Cargar credenciales desde variables de entorno locales del servidor
+const DB_PASSWORD = process.env.DATABASE_PASSWORD;
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subrule: A02-WEAK-HASH -->
+            <div class="wiki-subrule-box" id="OWASP-A02-WEAK-HASH">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Algoritmo de Hash Criptográfico Débil</span>
+                    <span class="wiki-subrule-id">OWASP-A02-WEAK-HASH</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Uso de hashes MD5 o SHA-1 que son vulnerables a colisiones y pueden ser rotos fácilmente mediante ataques de diccionario rápidos.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (Python)</div>
+                        <pre class="code-box-body">import hashlib
+# MD5 está roto, se descifra en milisegundos con tablas arcoíris
+hashed_pw = hashlib.md5(password.encode()).hexdigest()</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (Python)</div>
+                        <pre class="code-box-body">import bcrypt
+# Bcrypt es lento por diseño y usa salt, haciéndolo inmune a ataques rápidos
+hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())</pre>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- ==================== A03 ==================== -->
+        <article class="card wiki-card" id="A03">
+            <h2 style="font-family: var(--font-title); font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--panel-border); padding-bottom: 12px;">
+                <span>A03: Inyección</span>
+                <span class="severity-high" style="font-size: 0.8rem; padding: 4px 10px;">RIESGO ALTO</span>
+            </h2>
+            <p style="margin-top: 14px; color: var(--text-light);">
+                <strong>¿Qué significa?</strong> Permitir que datos proveídos externamente por un usuario sean interpretados directamente como comandos por el intérprete del servidor, base de datos o sistema operativo.
+            </p>
+
+            <!-- Subrule: A03-SQLI -->
+            <div class="wiki-subrule-box" id="OWASP-A03-SQLI">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Inyección SQL (SQLi)</span>
+                    <span class="wiki-subrule-id">OWASP-A03-SQLI</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Concatenar parámetros directamente a strings de sentencias SQL, permitiendo a un atacante inyectar comandos para robar o destruir la base de datos.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (Python)</div>
+                        <pre class="code-box-body"># Si el usuario escribe: ' OR '1'='1 como username,
+# iniciará sesión sin contraseña.
+query = f"SELECT * FROM users WHERE user = '{username}' AND pass = '{password}'"
+cursor.execute(query)</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (Python)</div>
+                        <pre class="code-box-body"># Consultas parametrizadas (los datos nunca se interpretan como código SQL)
+query = "SELECT * FROM users WHERE user = %s AND pass = %s"
+cursor.execute(query, (username, password))</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subrule: A03-XSS -->
+            <div class="wiki-subrule-box" id="OWASP-A03-XSS">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Cross-Site Scripting (XSS)</span>
+                    <span class="wiki-subrule-id">OWASP-A03-XSS</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Colocar código proveído por el usuario directamente en el DOM/HTML de la página sin sanitizar, lo que permite a atacantes ejecutar scripts maliciosos en los navegadores de otros usuarios.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (JavaScript)</div>
+                        <pre class="code-box-body">// Si userParam contiene &lt;script&gt;stealCookies()&lt;/script&gt;,
+// se ejecutará automáticamente.
+document.getElementById('welcome').innerHTML = "Hola " + userParam;</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (JavaScript)</div>
+                        <pre class="code-box-body">// Usar textContent (trata la entrada estrictamente como texto, no HTML)
+document.getElementById('welcome').textContent = "Hola " + userParam;</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subrule: A03-PATH-TRAVERSAL -->
+            <div class="wiki-subrule-box" id="OWASP-A03-PATH-TRAVERSAL">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Path Traversal (Salto de Directorio)</span>
+                    <span class="wiki-subrule-id">OWASP-A03-PATH-TRAVERSAL</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Utilizar concatenaciones para resolver rutas de lectura o escritura de archivos, permitiendo que un atacante escape a carpetas del sistema usando '../'.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (JavaScript)</div>
+                        <pre class="code-box-body">// Si el usuario solicita: ../../../etc/passwd,
+// podrá descargar información sensible del servidor.
+const filePath = path.join(__dirname, 'public', req.query.filename);
+fs.readFile(filePath, (err, data) => { ... });</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (JavaScript)</div>
+                        <pre class="code-box-body">// Validar y asegurar que la ruta resuelta esté dentro de la carpeta pública
+const safeDir = path.resolve(__dirname, 'public');
+const filePath = path.resolve(safeDir, req.query.filename);
+if (!filePath.startsWith(safeDir)) {
+    return res.status(403).send("Acceso denegado");
+}
+fs.readFile(filePath, (err, data) => { ... });</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subrule: A03-DYNAMIC-SQL -->
+            <div class="wiki-subrule-box" id="OWASP-A03-DYNAMIC-SQL">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">SQL Dinámico Inseguro</span>
+                    <span class="wiki-subrule-id">OWASP-A03-DYNAMIC-SQL</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Construir sentencias SQL de forma dinámica concatenando variables de entrada directamente dentro de consultas SQL directas o procedimientos almacenados.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (SQL)</div>
+                        <pre class="code-box-body">-- Consulta construida concatenando strings diretamente
+DECLARE @query NVARCHAR(MAX);
+SET @query = 'SELECT * FROM users WHERE username = ''' + @user_input + '''';
+EXEC(@query);</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (SQL)</div>
+                        <pre class="code-box-body">-- Usar consultas parametrizadas tipadas con sp_executesql
+DECLARE @query NVARCHAR(MAX);
+SET @query = 'SELECT * FROM users WHERE username = @user';
+EXEC sp_executesql @query, N'@user NVARCHAR(50)', @user = @user_input;</pre>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- ==================== A04 ==================== -->
+        <article class="card wiki-card" id="A04">
+            <h2 style="font-family: var(--font-title); font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--panel-border); padding-bottom: 12px;">
+                <span>A04: Diseño Inseguro</span>
+                <span class="severity-medium" style="font-size: 0.8rem; padding: 4px 10px;">RIESGO MEDIO</span>
+            </h2>
+            <p style="margin-top: 14px; color: var(--text-light);">
+                <strong>¿Qué significa?</strong> Fallas arquitectónicas cometidas en las fases iniciales de diseño y planeación del software. Por ejemplo, confiar la lógica de seguridad únicamente al cliente o documentar debilidades en los comentarios.
+            </p>
+
+            <!-- Subrule: A04-TODO-SECURITY -->
+            <div class="wiki-subrule-box" id="OWASP-A04-TODO-SECURITY">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Notas TODO de Seguridad Pendientes</span>
+                    <span class="wiki-subrule-id">OWASP-A04-TODO-SECURITY</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Comentarios en el código (`TODO` o `FIXME`) donde se documenta que falta implementar controles de seguridad antes de pasar a producción.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (Python)</div>
+                        <pre class="code-box-body">def check_access(user):
+    # TODO: validar permisos aquí, de momento todos son admin
+    return True</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (Python)</div>
+                        <pre class="code-box-body">def check_access(user):
+    # Lógica de seguridad implementada y validada en su totalidad
+    return user.is_authenticated and user.has_role('admin')</pre>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- ==================== A05 ==================== -->
+        <article class="card wiki-card" id="A05">
+            <h2 style="font-family: var(--font-title); font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--panel-border); padding-bottom: 12px;">
+                <span>A05: Configuración Incorrecta de Seguridad</span>
+                <span class="severity-medium" style="font-size: 0.8rem; padding: 4px 10px;">RIESGO MEDIO</span>
+            </h2>
+            <p style="margin-top: 14px; color: var(--text-light);">
+                <strong>¿Qué significa?</strong> Omitir o deshabilitar cabeceras de seguridad, dejar servicios por defecto activos, o configurar las cookies de sesión sin las banderas criptográficas adecuadas.
+            </p>
+
+            <!-- Subrule: A05-DEBUG-ACTIVE -->
+            <div class="wiki-subrule-box" id="OWASP-A05-DEBUG-ACTIVE">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Modo Debug Habilitado en Producción</span>
+                    <span class="wiki-subrule-id">OWASP-A05-DEBUG-ACTIVE</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Habilitar el modo de depuración en servidores de producción, lo que expone trazas de código y variables de entorno ante cualquier fallo.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (Python)</div>
+                        <pre class="code-box-body"># Flask / Django con debug encendido en producción
+app.run(debug=True)</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (Python)</div>
+                        <pre class="code-box-body"># Cargar el modo debug desde configuración
+import os
+app.run(debug=os.getenv("APP_DEBUG", "False").lower() == "true")</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subrule: A05-INSECURE-COOKIE -->
+            <div class="wiki-subrule-box" id="OWASP-A05-INSECURE-COOKIE">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Cookies de Sesión Inseguras</span>
+                    <span class="wiki-subrule-id">OWASP-A05-INSECURE-COOKIE</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Crear cookies de sesión sin las propiedades HttpOnly y Secure, posibilitando su robo mediante XSS o intercepción de red.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (JavaScript)</div>
+                        <pre class="code-box-body">// Cookie legible por JS y transmitida por HTTP plano
+res.cookie('session_id', '12345', { secure: false });</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (JavaScript)</div>
+                        <pre class="code-box-body">// Cookie inaccesible a JS y solo transmitida bajo HTTPS cifrado
+res.cookie('session_id', '12345', { httpOnly: true, secure: true, sameSite: 'strict' });</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subrule: A05-DOCKER-ROOT -->
+            <div class="wiki-subrule-box" id="OWASP-A05-DOCKER-ROOT">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Contenedor ejecutado como Root</span>
+                    <span class="wiki-subrule-id">OWASP-A05-DOCKER-ROOT</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Ejecutar procesos dentro de contenedores Docker con privilegios de root por defecto, posibilitando ataques de escape de contenedor hacia el host.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (Dockerfile)</div>
+                        <pre class="code-box-body">FROM node:18
+# Ejecuta todo el código y la app como usuario root por defecto
+COPY . /app
+WORKDIR /app
+CMD ["node", "index.js"]</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (Dockerfile)</div>
+                        <pre class="code-box-body">FROM node:18
+# Crear un usuario sin privilegios y cambiar a él
+RUN groupadd -r app && useradd -r -g app appuser
+COPY . /app
+RUN chown -R appuser:app /app
+USER appuser
+WORKDIR /app
+CMD ["node", "index.js"]</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subrule: A05-K8S-PRIV-ESC -->
+            <div class="wiki-subrule-box" id="OWASP-A05-K8S-PRIV-ESC">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Escalabilidad de Privilegios en Kubernetes</span>
+                    <span class="wiki-subrule-id">OWASP-A05-K8S-PRIV-ESC</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Permitir que los procesos de un contenedor pidan más privilegios de los que ya tienen en el cluster de Kubernetes.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (YAML)</div>
+                        <pre class="code-box-body">securityContext:
+  allowPrivilegeEscalation: true # Permite escalar privilegios</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (YAML)</div>
+                        <pre class="code-box-body">securityContext:
+  allowPrivilegeEscalation: false # Bloquea escalada de privilegios</pre>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- ==================== A06 ==================== -->
+        <article class="card wiki-card" id="A06">
+            <h2 style="font-family: var(--font-title); font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--panel-border); padding-bottom: 12px;">
+                <span>A06: Componentes Vulnerables y Desactualizados</span>
+                <span class="severity-medium" style="font-size: 0.8rem; padding: 4px 10px;">RIESGO MEDIO</span>
+            </h2>
+            <p style="margin-top: 14px; color: var(--text-light);">
+                <strong>¿Qué significa?</strong> Utilizar bibliotecas externas, frameworks o módulos desactualizados que tengan vulnerabilidades de seguridad documentadas públicamente (CVEs).
+            </p>
+
+            <!-- Subrule: A06-DEP-VULN -->
+            <div class="wiki-subrule-box" id="OWASP-A06-DEP-VULN">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Importación de Componentes Obsoletos</span>
+                    <span class="wiki-subrule-id">OWASP-A06-DEP-VULN</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Importación de librerías en versiones conocidas por fallas críticas de seguridad.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (requirements.txt)</div>
+                        <pre class="code-box-body"># Versión antigua con fallas de inyección de cabeceras
+requests==2.19.0
+django==2.2.1</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (requirements.txt)</div>
+                        <pre class="code-box-body"># Mantener paquetes actualizados
+requests>=2.31.0
+django>=4.2.8</pre>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- ==================== A07 ==================== -->
+        <article class="card wiki-card" id="A07">
+            <h2 style="font-family: var(--font-title); font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--panel-border); padding-bottom: 12px;">
+                <span>A07: Fallas en Identificación y Autenticación</span>
+                <span class="severity-high" style="font-size: 0.8rem; padding: 4px 10px;">RIESGO ALTO</span>
+            </h2>
+            <p style="margin-top: 14px; color: var(--text-light);">
+                <strong>¿Qué significa?</strong> Implementar mal la autenticación de usuarios. Esto incluye validar credenciales de forma débil, no proteger los intentos de fuerza bruta, o usar números no seguros para generar tokens.
+            </p>
+
+            <!-- Subrule: A07-WEAK-PASS-CHECK -->
+            <div class="wiki-subrule-box" id="OWASP-A07-WEAK-PASS-CHECK">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Comparaciones de Contraseñas Vulnerables</span>
+                    <span class="wiki-subrule-id">OWASP-A07-WEAK-PASS-CHECK</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Comparar contraseñas mediante operadores simples sin comparar en tiempo constante, posibilitando ataques de canal lateral (timing attacks).</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (JavaScript)</div>
+                        <pre class="code-box-body">// Comparación simple (termina antes si los primeros caracteres difieren)
+if (inputPassword === savedPassword) { ... }</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (JavaScript)</div>
+                        <pre class="code-box-body">// Usar criptografía de tiempo constante para evitar timing attacks
+const crypto = require('crypto');
+if (crypto.timingSafeEqual(Buffer.from(input), Buffer.from(saved))) { ... }</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subrule: A07-WEAK-SESSION -->
+            <div class="wiki-subrule-box" id="OWASP-A07-WEAK-SESSION">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">ID de Sesión Predecibles</span>
+                    <span class="wiki-subrule-id">OWASP-A07-WEAK-SESSION</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Generar tokens de seguridad o IDs de sesión mediante funciones aleatorias básicas del sistema que son predecibles.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (JavaScript)</div>
+                        <pre class="code-box-body">// Math.random() no es criptográficamente seguro
+const sessionId = Math.random().toString(36).substring(2);</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (JavaScript)</div>
+                        <pre class="code-box-body">// Usar generadores criptográficos seguros (CSPRNG)
+const crypto = require('crypto');
+const sessionId = crypto.randomBytes(32).toString('hex');</pre>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- ==================== A08 ==================== -->
+        <article class="card wiki-card" id="A08">
+            <h2 style="font-family: var(--font-title); font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--panel-border); padding-bottom: 12px;">
+                <span>A08: Fallas en Integridad de Software y Datos</span>
+                <span class="severity-high" style="font-size: 0.8rem; padding: 4px 10px;">RIESGO ALTO</span>
+            </h2>
+            <p style="margin-top: 14px; color: var(--text-light);">
+                <strong>¿Qué significa?</strong> Confiar en datos, tokens (como JWT) o paquetes descargados de fuentes externas sin verificar previamente su procedencia o si fueron alterados.
+            </p>
+
+            <!-- Subrule: A08-UNSAFE-DESERIALIZATION -->
+            <div class="wiki-subrule-box" id="OWASP-A08-UNSAFE-DESERIALIZATION">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Deserialización Insegura</span>
+                    <span class="wiki-subrule-id">OWASP-A08-UNSAFE-DESERIALIZATION</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Deserializar datos complejos (objetos Python Pickle o YAML) provistos de fuentes no confiables, lo que permite instanciar código malicioso (RCE).</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (Python)</div>
+                        <pre class="code-box-body">import pickle
+# Si user_input es manipulado, ejecutará comandos del sistema
+user_data = pickle.loads(user_input)</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (Python)</div>
+                        <pre class="code-box-body">import json
+# JSON solo permite tipos de datos planos, no clases ni código dinámico
+user_data = json.loads(user_input)</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subrule: A08-UNSIGNED-JWT -->
+            <div class="wiki-subrule-box" id="OWASP-A08-UNSIGNED-JWT">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">JWT con Algoritmo de Firma 'none'</span>
+                    <span class="wiki-subrule-id">OWASP-A08-UNSIGNED-JWT</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Aceptar JSON Web Tokens que especifiquen en su cabecera que no están firmados (`algorithm: "none"`), permitiendo suplantar identidades.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (JavaScript)</div>
+                        <pre class="code-box-body">// Decodificar sin verificar la firma criptográfica
+const decoded = jwt.decode(token);</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (JavaScript)</div>
+                        <pre class="code-box-body">// Forzar algoritmo robusto de firma y validar con clave secreta
+const verified = jwt.verify(token, SECRET_KEY, { algorithms: ['HS256'] });</pre>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- ==================== A09 ==================== -->
+        <article class="card wiki-card" id="A09">
+            <h2 style="font-family: var(--font-title); font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--panel-border); padding-bottom: 12px;">
+                <span>A09: Fallas de Registro y Monitoreo</span>
+                <span class="severity-low" style="font-size: 0.8rem; padding: 4px 10px;">RIESGO BAJO</span>
+            </h2>
+            <p style="margin-top: 14px; color: var(--text-light);">
+                <strong>¿Qué significa?</strong> No registrar eventos críticos de seguridad (como inicios de sesión fallidos o errores del sistema), capturar errores silenciosamente (except pass), o registrar información confidencial en los logs públicos.
+            </p>
+
+            <!-- Subrule: A09-SILENT-EXCEPT -->
+            <div class="wiki-subrule-box" id="OWASP-A09-SILENT-EXCEPT">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Captura Silenciosa de Excepciones</span>
+                    <span class="wiki-subrule-id">OWASP-A09-SILENT-EXCEPT</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Ocultar errores de código silenciando las excepciones sin dejar ningún rastro o registro del fallo.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (Python)</div>
+                        <pre class="code-box-body">try:
+    process_payment()
+except Exception:
+    # Si falla la transacción, nadie se enterará del error
+    pass</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (Python)</div>
+                        <pre class="code-box-body">import logging
+try:
+    process_payment()
+except Exception as e:
+    # Registrar el fallo y la traza para auditoría
+    logging.error(f"Fallo en pago: {str(e)}", exc_info=True)
+    raise</pre>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- ==================== A10 ==================== -->
+        <article class="card wiki-card" id="A10">
+            <h2 style="font-family: var(--font-title); font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--panel-border); padding-bottom: 12px;">
+                <span>A10: Server-Side Request Forgery (SSRF)</span>
+                <span class="severity-high" style="font-size: 0.8rem; padding: 4px 10px;">RIESGO ALTO</span>
+            </h2>
+            <p style="margin-top: 14px; color: var(--text-light);">
+                <strong>¿Qué significa?</strong> Cuando la aplicación web realiza peticiones de red hacia un servidor externo a petición del usuario, sin validar si la URL de destino apunta a la red interna del propio servidor (como localhost).
+            </p>
+
+            <!-- Subrule: A10-SSRF-REQUESTS -->
+            <div class="wiki-subrule-box" id="OWASP-A10-SSRF-REQUESTS">
+                <div class="wiki-subrule-header">
+                    <span class="wiki-subrule-title">Petición HTTP Saliente sin Filtrar</span>
+                    <span class="wiki-subrule-id">OWASP-A10-SSRF-REQUESTS</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--muted);">Hacer peticiones directas a una URL provista en el request, permitiendo a un atacante escanear la red interna corporativa.</p>
+                <div class="code-comparison-grid">
+                    <div class="code-box-wrap">
+                        <div class="code-box-header bad">Inseguro (Python)</div>
+                        <pre class="code-box-body">import requests
+def fetch_avatar(user_url):
+    # Si user_url es: http://127.0.0.1:8500/admin,
+    # el servidor consultará su propio panel interno.
+    return requests.get(user_url).content</pre>
+                    </div>
+                    <div class="code-box-wrap">
+                        <div class="code-box-header good">Seguro (Python)</div>
+                        <pre class="code-box-body">from urllib.parse import urlparse
+def fetch_avatar(user_url):
+    parsed = urlparse(user_url)
+    # Validar que no apunte a IPs locales ni al loopback
+    if parsed.hostname in ["localhost", "127.0.0.1", "169.254.169.254"]:
+        raise ValueError("URL no permitida")
+    return requests.get(user_url).content</pre>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+    </main>
+</div>
+
+<section class="card" style="margin-top: 32px; background: rgba(99, 102, 241, 0.04); border-color: rgba(99, 102, 241, 0.25);">
+    <h3 style="color: var(--accent); font-family: var(--font-title); font-weight: 700;">Recursos Adicionales de Referencia</h3>
+    <ul style="line-height: 2; font-size: 0.95rem; padding-left: 20px; color: var(--text-light); margin-top: 12px;">
+        <li><a href="https://owasp.org/www-project-top-ten/" target="_blank" style="color: var(--accent-2); font-weight: 600; text-decoration: none;">Sitio Oficial OWASP Top 10</a> - Proyecto oficial con documentación detallada de riesgos.</li>
+        <li><a href="https://cheatsheetseries.owasp.org/" target="_blank" style="color: var(--accent-2); font-weight: 600; text-decoration: none;">OWASP Cheat Sheet Series</a> - Guía rápida de defensa técnica para desarrolladores.</li>
+    </ul>
+</section>
+
+<script>
+    // Smooth scrolling highlight for sidebar items
+    document.addEventListener("DOMContentLoaded", () => {
+        const sections = document.querySelectorAll(".wiki-card, .wiki-subrule-box");
+        const navItems = document.querySelectorAll(".wiki-nav-item");
+
+        window.addEventListener("scroll", () => {
+            let current = "";
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (window.scrollY >= sectionTop - 120) {
+                    current = section.getAttribute("id");
+                }
+            });
+
+            navItems.forEach(item => {
+                item.classList.remove("active");
+                const link = item.querySelector("a");
+                if (link.getAttribute("href").substring(1) === current) {
+                    item.classList.add("active");
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

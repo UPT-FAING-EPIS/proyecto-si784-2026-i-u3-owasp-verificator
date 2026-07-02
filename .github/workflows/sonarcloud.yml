@@ -1,0 +1,146 @@
+name: Análisis Estático - SonarQube
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  sonarqube:
+    name: SonarQube Scan (self-hosted)
+    runs-on: ubuntu-latest
+
+    services:
+      sonarqube:
+        image: sonarqube:lts-community
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/api/system/status || exit 1"
+          --health-interval 15s
+          --health-timeout 10s
+          --health-retries 12
+          --health-start-period 120s
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          pip install -r requirements.txt
+          pip install pytest-cov
+
+      - name: Ejecutar tests con cobertura
+        env:
+          APP_ENV: test
+        run: |
+          python -m pytest tests/ \
+            --cov=app \
+            --cov-report=xml:coverage.xml \
+            --cov-report=term-missing \
+            -q
+
+      - name: Esperar a que SonarQube esté listo
+        run: |
+          echo "Esperando a que SonarQube inicie..."
+          for i in $(seq 1 60); do
+            STATUS=$(curl -sf http://localhost:9000/api/system/status | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])" 2>/dev/null || echo "DOWN")
+            if [ "$STATUS" = "UP" ]; then
+              echo "SonarQube está listo ✅"
+              break
+            fi
+            echo "  Intento $i/60 — estado: $STATUS"
+            sleep 5
+          done
+
+      - name: Crear proyecto y token en SonarQube
+        id: sonar-setup
+        run: |
+          # Cambiar contraseña por defecto (obligatorio en versiones recientes)
+          curl -sf -u admin:admin \
+            -X POST "http://localhost:9000/api/users/change_password" \
+            -d "login=admin&previousPassword=admin&password=admin123" || true
+
+          # Crear proyecto
+          curl -sf -u admin:admin123 \
+            -X POST "http://localhost:9000/api/projects/create" \
+            -d "name=owasp-verificator&project=owasp-verificator" || true
+
+          # Generar token
+          TOKEN=$(curl -sf -u admin:admin123 \
+            -X POST "http://localhost:9000/api/user_tokens/generate" \
+            -d "name=ci-token" | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Instalar SonarScanner CLI
+        run: |
+          SCANNER_VERSION="6.2.1.4610"
+          curl -sSLo sonar-scanner.zip \
+            "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SCANNER_VERSION}-linux-x64.zip"
+          unzip -q sonar-scanner.zip
+          echo "$PWD/sonar-scanner-${SCANNER_VERSION}-linux-x64/bin" >> "$GITHUB_PATH"
+
+      - name: Ejecutar análisis SonarQube
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=owasp-verificator \
+            -Dsonar.projectName="Verificador de Cumplimiento OWASP" \
+            -Dsonar.sources=app/ \
+            -Dsonar.tests=tests/ \
+            -Dsonar.python.version=3.11 \
+            -Dsonar.python.coverage.reportPaths=coverage.xml \
+            -Dsonar.sourceEncoding=UTF-8 \
+            -Dsonar.host.url=http://localhost:9000 \
+            -Dsonar.token=${{ steps.sonar-setup.outputs.token }}
+
+      - name: Esperar procesamiento del análisis
+        run: sleep 10
+
+      - name: Obtener resultados y publicar resumen
+        if: always()
+        run: |
+          echo "## 🔍 Resultados de SonarQube" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Obtener métricas del proyecto
+          METRICS=$(curl -sf -u admin:admin123 \
+            "http://localhost:9000/api/measures/component?component=owasp-verificator&metricKeys=bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,ncloc,security_hotspots" \
+            2>/dev/null || echo "{}")
+
+          if echo "$METRICS" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null; then
+            echo "| Métrica | Valor |" >> $GITHUB_STEP_SUMMARY
+            echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+
+            echo "$METRICS" | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          labels = {
+              'bugs': '🐛 Bugs',
+              'vulnerabilities': '🔓 Vulnerabilidades',
+              'code_smells': '🦨 Code Smells',
+              'coverage': '📊 Cobertura',
+              'duplicated_lines_density': '📋 Líneas duplicadas',
+              'ncloc': '📏 Líneas de código',
+              'security_hotspots': '🔥 Security Hotspots',
+          }
+          for m in data.get('component', {}).get('measures', []):
+              name = labels.get(m['metric'], m['metric'])
+              val = m['value']
+              if m['metric'] in ('coverage', 'duplicated_lines_density'):
+                  val += '%'
+              print(f'| {name} | {val} |')
+          " >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No se pudieron obtener métricas" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ No se pudieron obtener métricas del análisis" >> $GITHUB_STEP_SUMMARY
+          fi

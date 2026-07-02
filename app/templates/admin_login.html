@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="max-width: 420px; margin: 80px auto; display: flex; flex-direction: column; gap: 24px;">
+    <div style="text-align: center;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <h2 style="font-family: var(--font-title); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.3px; color: var(--text);">Acceso al SOC</h2>
+        <p style="color: var(--muted); font-size: 0.875rem; margin-top: 4px;">Ingresa tus credenciales para abrir la consola.</p>
+    </div>
+
+    <div class="card" style="padding: 32px; border: 1px solid var(--panel-border); background: var(--panel-bg); margin-bottom: 0;">
+        {% if success %}
+        <div class="alert-success">
+            {{ success }}
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="alert-danger">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post" action="/login" style="display: flex; flex-direction: column; gap: 16px;">
+            <div>
+                <label for="username">Usuario</label>
+                <input id="username" type="text" name="username" placeholder="Tu nombre de usuario" required>
+            </div>
+            <div>
+                <label for="password">Contraseña</label>
+                <input id="password" type="password" name="password" placeholder="Tu contraseña" required>
+            </div>
+            <button class="button" type="submit" style="width: 100%; margin-top: 8px;">Ingresar al Panel</button>
+        </form>
+    </div>
+
+    <div style="text-align: center; display: flex; flex-direction: column; gap: 16px; font-size: 0.875rem;">
+        <div style="color: var(--muted);">
+            ¿No tienes cuenta? <a href="/register" style="color: var(--accent-2); font-weight: 600; text-decoration: none;">Regístrate aquí</a>
+        </div>
+        <div>
+            <a href="/" class="button button-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 0.85rem; font-weight: 500;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                <span>Volver al Dashboard</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
