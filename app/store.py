@@ -28,7 +28,7 @@ class InMemoryScanStore:
         self._admin_sessions: dict[str, dict] = {}
         
         # Load environment database settings
-        self._db_type = os.getenv("DB_TYPE", "mysql").lower()
+        self._db_type = os.getenv("DB_TYPE", "sqlite" if os.getenv("APP_ENV") == "test" else "mysql").lower()
         
         # --- CONEXIÓN DE BASE DE DATOS LOCAL ---
         self._mysql_host = os.getenv("MYSQL_HOST", "localhost")

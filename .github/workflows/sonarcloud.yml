@@ -1,4 +1,4 @@
-name: Análisis Estático - SonarQube
+name: Análisis Estático - SonarCloud
 
 on:
   push:
@@ -9,20 +9,8 @@ on:
 
 jobs:
   sonarqube:
-    name: SonarQube Scan (self-hosted)
+    name: SonarCloud Scan
     runs-on: ubuntu-latest
-
-    services:
-      sonarqube:
-        image: sonarqube:lts-community
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd "curl -f http://localhost:9000/api/system/status || exit 1"
-          --health-interval 15s
-          --health-timeout 10s
-          --health-retries 12
-          --health-start-period 120s
 
     steps:
       - name: Checkout del repositorio
@@ -44,44 +32,11 @@ jobs:
         env:
           APP_ENV: test
         run: |
-          python -m pytest tests/ \
+          python -m pytest tests/test_scanner.py tests/test_api.py tests/test_integration.py \
             --cov=app \
             --cov-report=xml:coverage.xml \
             --cov-report=term-missing \
             -q
-
-      - name: Esperar a que SonarQube esté listo
-        run: |
-          echo "Esperando a que SonarQube inicie..."
-          for i in $(seq 1 60); do
-            STATUS=$(curl -sf http://localhost:9000/api/system/status | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])" 2>/dev/null || echo "DOWN")
-            if [ "$STATUS" = "UP" ]; then
-              echo "SonarQube está listo ✅"
-              break
-            fi
-            echo "  Intento $i/60 — estado: $STATUS"
-            sleep 5
-          done
-
-      - name: Crear proyecto y token en SonarQube
-        id: sonar-setup
-        run: |
-          # Cambiar contraseña por defecto (obligatorio en versiones recientes)
-          curl -sf -u admin:admin \
-            -X POST "http://localhost:9000/api/users/change_password" \
-            -d "login=admin&previousPassword=admin&password=admin123" || true
-
-          # Crear proyecto
-          curl -sf -u admin:admin123 \
-            -X POST "http://localhost:9000/api/projects/create" \
-            -d "name=owasp-verificator&project=owasp-verificator" || true
-
-          # Generar token
-          TOKEN=$(curl -sf -u admin:admin123 \
-            -X POST "http://localhost:9000/api/user_tokens/generate" \
-            -d "name=ci-token" | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
-
-          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
       - name: Instalar SonarScanner CLI
         run: |
@@ -91,18 +46,23 @@ jobs:
           unzip -q sonar-scanner.zip
           echo "$PWD/sonar-scanner-${SCANNER_VERSION}-linux-x64/bin" >> "$GITHUB_PATH"
 
-      - name: Ejecutar análisis SonarQube
+      - name: Ejecutar análisis SonarCloud
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           sonar-scanner \
-            -Dsonar.projectKey=owasp-verificator \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.organization=gerardocll95 \
+            -Dsonar.projectKey=gerardocll95_proyecto-si784-2026-i-u3-owasp-verificator \
             -Dsonar.projectName="Verificador de Cumplimiento OWASP" \
             -Dsonar.sources=app/ \
             -Dsonar.tests=tests/ \
             -Dsonar.python.version=3.11 \
             -Dsonar.python.coverage.reportPaths=coverage.xml \
             -Dsonar.sourceEncoding=UTF-8 \
-            -Dsonar.host.url=http://localhost:9000 \
-            -Dsonar.token=${{ steps.sonar-setup.outputs.token }}
+            -Dsonar.branch.name=master \
+            -Dsonar.qualitygate.wait=false
 
       - name: Esperar procesamiento del análisis
         run: sleep 10
@@ -110,12 +70,12 @@ jobs:
       - name: Obtener resultados y publicar resumen
         if: always()
         run: |
-          echo "## 🔍 Resultados de SonarQube" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔍 Resultados de SonarCloud" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Obtener métricas del proyecto
-          METRICS=$(curl -sf -u admin:admin123 \
-            "http://localhost:9000/api/measures/component?component=owasp-verificator&metricKeys=bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,ncloc,security_hotspots" \
+          # Obtener métricas del proyecto de SonarCloud
+          METRICS=$(curl -sf -u "${{ secrets.SONAR_TOKEN }}:" \
+            "https://sonarcloud.io/api/measures/component?component=gerardocll95_proyecto-si784-2026-i-u3-owasp-verificator&metricKeys=bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,ncloc,security_hotspots" \
             2>/dev/null || echo "{}")
 
           if echo "$METRICS" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null; then

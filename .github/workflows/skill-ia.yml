@@ -1,0 +1,138 @@
+name: Skill de IA - Escaneo de Seguridad
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target_type:
+        description: 'Tipo de objetivo (code, url, github_repo)'
+        required: true
+        default: 'github_repo'
+      target_value:
+        description: 'Valor del objetivo (código fuente, URL web o URL de repositorio GitHub)'
+        required: true
+  repository_dispatch:
+    types: [skill-ia-scan]
+
+jobs:
+  api-scan:
+    name: Escaneo de Seguridad Autónomo
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ejecutar escaneo via API
+        run: |
+          # Resolver valores de entrada dependiendo del evento
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            TARGET_TYPE="${{ github.event.client_payload.target_type }}"
+            TARGET_VALUE="${{ github.event.client_payload.target_value }}"
+          elif [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event_name }}" = "pull_request" ]; then
+            TARGET_TYPE="github_repo"
+            TARGET_VALUE="https://github.com/${{ github.repository }}"
+          else
+            TARGET_TYPE="${{ github.event.inputs.target_type }}"
+            TARGET_VALUE="${{ github.event.inputs.target_value }}"
+          fi
+
+          echo "Iniciando análisis OWASP para tipo: $TARGET_TYPE..."
+
+          # Realizar petición POST para analizar
+          RESPONSE=$(curl -sf -X POST "http://38.250.116.71:8000/analyze/api" \
+            -H "x-api-key: ${{ secrets.OWASP_VERIFICATOR_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"target_type\": \"$TARGET_TYPE\",
+              \"target_value\": \"$TARGET_VALUE\",
+              \"create_issues\": false
+            }")
+          
+          # Guardar respuesta para el paso de IA
+          echo "$RESPONSE" > response.json
+          
+          echo "## 🛡️ Resultados de Análisis API (Skill de IA)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Formatear y mostrar resultados
+          echo "$RESPONSE" | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          print(f'| Métrica | Valor |')
+          print(f'|---|---|')
+          print(f'| **Scan ID** | {data.get(\"id\")} |')
+          print(f'| **Estado** | {data.get(\"status\")} |')
+          print(f'| **Puntuación de Seguridad (Score)** | {data.get(\"score\")}/100 |')
+          print(f'| **Número de Hallazgos** | {len(data.get(\"findings\", []))} |')
+          print('\n### 🔍 Detalle de Hallazgos')
+          print('| Regla | Severidad | Descripción | Evidencia |')
+          print('|---|---|---|---|')
+          for f in data.get('findings', []):
+              evidence = f.get('evidence', '').replace('|', '\\|').replace('\n', ' ')
+              description = f.get('description', '').replace('|', '\\|')
+              print(f'| `{f.get(\"rule_id\")}` | {f.get(\"severity\")} | {description} | `{evidence}` |')
+          " >> $GITHUB_STEP_SUMMARY
+
+      - name: Generar Remediación con Inteligencia Artificial (Copilot-like)
+        if: always()
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          # Solo ejecutar si se obtuvo respuesta del escaneo
+          if [ -f response.json ]; then
+            python3 -c "
+          import sys, os, json, urllib.request
+          
+          with open('response.json', 'r') as f:
+              data = json.load(f)
+          
+          findings = data.get('findings', [])
+          if not findings:
+              with open(os.getenv('GITHUB_STEP_SUMMARY'), 'a') as summary_file:
+                  summary_file.write('\n\n## 🤖 Remediación Inteligente (GitHub Copilot Agent)\n\n¡No se detectaron vulnerabilidades! Tu código está seguro. 👍')
+              sys.exit(0)
+              
+          # Ordenar por severidad y limitar a los 10 más críticos para evitar 413 Payload Too Large
+          severity_priority = {'high': 0, 'critical': 0, 'medium': 1, 'low': 2, 'info': 3}
+          findings.sort(key=lambda x: severity_priority.get(x.get('severity', '').lower(), 99))
+          
+          total_findings = len(findings)
+          findings_to_analyze = findings[:10]
+          
+          print(f'Generando remediaciones con IA para los {len(findings_to_analyze)} hallazgos más críticos (de {total_findings} totales)...')
+          
+          prompt = 'Eres GitHub Copilot Security Expert. Analiza los siguientes hallazgos de seguridad OWASP encontrados en nuestro código y para cada uno de ellos proporciona:\n1. Una explicación clara y concisa de la vulnerabilidad y por qué es un riesgo.\n2. El bloque de código corregido (remediación segura) con comentarios explicativos.\n\nHallazgos a analizar:\n'
+          for i, f in enumerate(findings_to_analyze, 1):
+              prompt += f'\nHallazgo #{i}:\n- Regla: {f.get(\"rule_id\")}\n- Título: {f.get(\"title\")}\n- Severidad: {f.get(\"severity\")}\n- Descripción: {f.get(\"description\")}\n- Evidencia: {f.get(\"evidence\")}\n'
+              
+          url = 'https://models.inference.ai.azure.com/chat/completions'
+          headers = {
+              'Authorization': f'Bearer {os.getenv(\"GH_PAT\")}',
+              'Content-Type': 'application/json'
+          }
+          req_data = {
+              'messages': [
+                  {'role': 'system', 'content': 'Eres un consultor experto de seguridad OWASP y asistente técnico de GitHub Copilot.'},
+                  {'role': 'user', 'content': prompt}
+              ],
+              'model': 'gpt-4o-mini',
+              'temperature': 0.2
+          }
+          
+          try:
+              req = urllib.request.Request(url, data=json.dumps(req_data).encode('utf-8'), headers=headers, method='POST')
+              with urllib.request.urlopen(req) as response:
+                  res = json.loads(response.read().decode('utf-8'))
+                  ai_text = res['choices'][0]['message']['content']
+                  
+                  with open(os.getenv('GITHUB_STEP_SUMMARY'), 'a') as summary_file:
+                      summary_file.write('\n\n## 🤖 Remediación Inteligente (GitHub Copilot Agent)\n\n')
+                      if total_findings > 10:
+                          summary_file.write(f'*(Se muestran análisis de remediación para los 10 hallazgos más críticos de un total de {total_findings} detectados)*\n\n')
+                      summary_file.write(ai_text)
+                  print('✅ Reporte de remediación por IA generado con éxito.')
+          except Exception as e:
+              print(f'Error al llamar al API de GitHub Models: {e}')
+            "
+          fi

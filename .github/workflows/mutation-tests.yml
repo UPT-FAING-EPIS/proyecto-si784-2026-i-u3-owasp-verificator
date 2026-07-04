@@ -24,17 +24,15 @@ jobs:
       - name: Instalar dependencias
         run: |
           pip install -r requirements.txt
-          pip install mutmut
+          pip install "mutmut<3.0"
+
 
       - name: Ejecutar pruebas de mutación en scanner.py
         env:
           APP_ENV: test
         run: |
-          mutmut run \
-            --paths-to-mutate=app/services/scanner.py \
-            --tests-dir=tests/ \
-            --runner="python -m pytest tests/test_scanner.py -x -q" \
-            --no-progress || true
+          mutmut run --no-progress || true
+
 
       - name: Generar reporte de mutantes
         if: always()
@@ -42,7 +40,7 @@ jobs:
           echo "## 🧬 Resultados de Pruebas de Mutación" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          mutmut results || true
+          mutmut results >> $GITHUB_STEP_SUMMARY 2>/dev/null || true
           echo '```' >> $GITHUB_STEP_SUMMARY
 
           echo "" >> $GITHUB_STEP_SUMMARY

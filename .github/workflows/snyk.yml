@@ -28,15 +28,17 @@ jobs:
       - name: Instalar dependencias
         run: pip install -r requirements.txt
 
-      - name: Ejecutar Snyk para verificar vulnerabilidades
-        uses: snyk/actions/python-3.10@master
+      - name: Configurar Snyk CLI
+        uses: snyk/actions/setup@master
+
+      - name: Ejecutar Snyk para verificar vulnerabilidades (SARIF)
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: >-
-            --file=requirements.txt
-            --severity-threshold=medium
+        run: |
+          snyk test \
+            --file=requirements.txt \
+            --severity-threshold=medium \
             --sarif-file-output=snyk-results.sarif
 
       - name: Subir resultados SARIF a GitHub Security
@@ -51,4 +53,4 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
-          npx -y snyk test --file=requirements.txt --severity-threshold=low || true
+          snyk test --file=requirements.txt --severity-threshold=low || true
