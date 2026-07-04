@@ -30,31 +30,49 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            padding: 2rem 1rem;
+            padding: 3rem 2rem;
             overflow-x: hidden;
         }
-        header { text-align: center; margin-bottom: 3rem; width: 100%; max-width: 1200px; }
-        h1 {
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+        header h1 {
             font-family: 'Outfit', sans-serif;
-            font-size: 2.5rem;
+            font-size: 3.5rem;
             font-weight: 800;
-            background: linear-gradient(to right, #6366f1, #a855f7, #ec4899);
+            background: linear-gradient(135deg, #fff 30%, #a5b4fc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.05em;
+            margin-bottom: 0.75rem;
         }
-        .subtitle { color: var(--text-muted); font-size: 1.1rem; font-weight: 400; }
-        main { width: 100%; max-width: 1200px; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; width: 100%; }
+        header .subtitle {
+            color: var(--text-muted);
+            font-size: 1.15rem;
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        main {
+            width: 100%;
+            max-width: 1200px;
+            z-index: 1;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 2rem;
+            width: 100%;
+        }
         .card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 2rem;
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             overflow: hidden;
@@ -112,11 +130,10 @@
                 </div>
                 <div class="card-body">
                     <h2>Pruebas Unitarias</h2>
-                    <p>Validación de componentes y lógica individual de la aplicación con Pytest. Incluye reporte de cobertura de código.</p>
+                    <p>Validación de componentes y lógica individual de la aplicación con Pytest.</p>
                 </div>
                 <div class="card-actions">
                     <a href="unit/index.html" class="btn btn-primary">Ver Reporte Pytest</a>
-                    <a href="unit/coverage/index.html" class="btn btn-secondary">Ver Cobertura</a>
                 </div>
             </div>
 
@@ -130,11 +147,10 @@
                 </div>
                 <div class="card-body">
                     <h2>Pruebas de Integración</h2>
-                    <p>Verificación del flujo de datos y la interacción entre múltiples módulos de la aplicación. Incluye reporte de cobertura.</p>
+                    <p>Verificación del flujo de datos y la interacción entre múltiples módulos de la aplicación.</p>
                 </div>
                 <div class="card-actions">
                     <a href="integration/index.html" class="btn btn-primary">Ver Reporte Pytest</a>
-                    <a href="integration/coverage/index.html" class="btn btn-secondary">Ver Cobertura</a>
                 </div>
             </div>
 
