@@ -122,6 +122,17 @@ html_content = f'''<!DOCTYPE html>
         .stat-card {{ background: rgba(30,41,59,0.5); border: 1px solid rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px; flex: 1; text-align: center; }}
         .stat-card h3 {{ margin: 0 0 0.5rem 0; color: #94a3b8; font-size: 0.9rem; font-weight: 500; text-transform: uppercase; }}
         .stat-val {{ font-size: 1.8rem; font-weight: 700; }}
+        
+        /* Tabs styles */
+        .tabs-container {{ display: flex; gap: 1rem; margin-bottom: 2.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.25rem; }}
+        .tab-btn {{ background: none; border: none; color: #94a3b8; font-size: 1.1rem; font-weight: 600; padding: 0.75rem 1.5rem; cursor: pointer; transition: all 0.3s ease; position: relative; font-family: 'Outfit', sans-serif; }}
+        .tab-btn:hover {{ color: #f8fafc; }}
+        .tab-btn.active {{ color: #6366f1; }}
+        .tab-btn.active::after {{ content: ''; position: absolute; bottom: -0.25rem; left: 0; width: 100%; height: 3px; background: linear-gradient(to right, #6366f1, #ec4899); border-radius: 9999px; }}
+        .tab-content {{ display: none; }}
+        .tab-content.active {{ display: block; animation: fadeIn 0.4s ease; }}
+        @keyframes fadeIn {{ from {{ opacity: 0; transform: translateY(10px); }} to {{ opacity: 1; transform: translateY(0); }} }}
+
         table {{ width: 100%; border-collapse: collapse; background: rgba(30,41,59,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; overflow: hidden; margin-bottom: 3rem; }}
         th, td {{ padding: 1rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; }}
         th {{ background: rgba(30,41,59,0.6); color: #94a3b8; font-weight: 600; font-size: 0.9rem; }}
@@ -132,7 +143,7 @@ html_content = f'''<!DOCTYPE html>
         .badge-danger {{ background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid #ef4444; }}
         .badge-warn {{ background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid #f59e0b; }}
         .badge-info {{ background: rgba(59,130,246,0.2); color: #3b82f6; border: 1px solid #3b82f6; }}
-        .ai-section {{ background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.15); border-radius: 16px; padding: 2rem; margin-top: 2rem; }}
+        .ai-section {{ background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.15); border-radius: 16px; padding: 2rem; }}
         .ai-section h2 {{ font-family: 'Outfit', sans-serif; color: #a5b4fc; margin-top: 0; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }}
         .back-btn {{ display: inline-block; margin-bottom: 1.5rem; color: #6366f1; text-decoration: none; font-weight: 600; }}
         .back-btn:hover {{ text-decoration: underline; }}
@@ -151,27 +162,52 @@ html_content = f'''<!DOCTYPE html>
             <div class="stat-card"><h3>Hallazgos</h3><div class="stat-val" style="color:#ef4444;">{len(findings)}</div></div>
         </div>
         
-        <h2>Detalle de Hallazgos OWASP</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:5%;">#</th>
-                    <th style="width:10%;">Severidad</th>
-                    <th style="width:15%;">Regla ID</th>
-                    <th style="width:35%;">Vulnerabilidad</th>
-                    <th style="width:35%;">Evidencia</th>
-                </tr>
-            </thead>
-            <tbody>
-                {rows}
-            </tbody>
-        </table>
+        <div class="tabs-container">
+            <button class="tab-btn active" onclick="openTab(event, 'findings-tab')">🔍 Detalle de Hallazgos</button>
+            <button class="tab-btn" onclick="openTab(event, 'remediation-tab')">🤖 Propuestas de Remediación (IA)</button>
+        </div>
+
+        <div id="findings-tab" class="tab-content active">
+            <h2>Detalle de Hallazgos OWASP</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:5%;">#</th>
+                        <th style="width:10%;">Severidad</th>
+                        <th style="width:15%;">Regla ID</th>
+                        <th style="width:35%;">Vulnerabilidad</th>
+                        <th style="width:35%;">Evidencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows}
+                </tbody>
+            </table>
+        </div>
         
-        <div class="ai-section">
-            <h2>🤖 Propuestas de Remediación con IA</h2>
-            <div>{ai_html}</div>
+        <div id="remediation-tab" class="tab-content">
+            <div class="ai-section">
+                <h2>🤖 Propuestas de Remediación con IA</h2>
+                <div>{ai_html}</div>
+            </div>
         </div>
     </div>
+
+    <script>
+        function openTab(evt, tabName) {{
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {{
+                tabcontent[i].classList.remove("active");
+            }}
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {{
+                tablinks[i].classList.remove("active");
+            }}
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }}
+    </script>
 </body>
 </html>
 '''

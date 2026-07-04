@@ -17,6 +17,10 @@ on:
   repository_dispatch:
     types: [skill-ia-scan]
 
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
 jobs:
   api-scan:
     name: Escaneo de Seguridad Autónomo
