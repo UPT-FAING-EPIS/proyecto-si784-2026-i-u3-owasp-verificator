@@ -108,7 +108,9 @@
                     <div class="icon-container">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
                     </div>
-                    <div class="status-badge"><span class="status-dot"></span> Activo</div>
+                    <div class="status-badge">
+                        <span class="status-dot"></span> Activo
+                    </div>
                 </div>
                 <div class="card-body">
                     <h2>Pruebas Unitarias</h2>
@@ -126,7 +128,9 @@
                     <div class="icon-container">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="14" height="14" rx="2" ry="2"/></svg>
                     </div>
-                    <div class="status-badge"><span class="status-dot"></span> Activo</div>
+                    <div class="status-badge">
+                        <span class="status-dot"></span> Activo
+                    </div>
                 </div>
                 <div class="card-body">
                     <h2>Pruebas de Integración</h2>
@@ -144,7 +148,9 @@
                     <div class="icon-container">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                     </div>
-                    <div class="status-badge"><span class="status-dot"></span> Activo</div>
+                    <div class="status-badge">
+                        <span class="status-dot"></span> Activo
+                    </div>
                 </div>
                 <div class="card-body">
                     <h2>Pruebas de Interfaz (UI)</h2>
@@ -161,7 +167,9 @@
                     <div class="icon-container">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                     </div>
-                    <div class="status-badge"><span class="status-dot"></span> Activo</div>
+                    <div class="status-badge">
+                        <span class="status-dot"></span> Activo
+                    </div>
                 </div>
                 <div class="card-body">
                     <h2>Pruebas BDD</h2>
@@ -178,7 +186,9 @@
                     <div class="icon-container">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2.5 3.19-2.5 5.5h20c0-2.31-1-4.24-2.5-5.5"/><path d="M12 2C6.5 2 2 6.5 2 12c0 1.2.22 2.35.63 3.42l3.22-3.22a4 4 0 0 1 5.66-5.66l3.22-3.22A9.92 9.92 0 0 0 12 2z"/><path d="M21.37 15.42c.41-1.07.63-2.22.63-3.42 0-5.5-4.5-10-10-10a9.92 9.92 0 0 0-3.42.63l3.22 3.22a4 4 0 0 1 5.66 5.66l3.22 3.22z"/></svg>
                     </div>
-                    <div class="status-badge"><span class="status-dot"></span> Activo</div>
+                    <div class="status-badge">
+                        <span class="status-dot"></span> Activo
+                    </div>
                 </div>
                 <div class="card-body">
                     <h2>Pruebas de Mutación</h2>
@@ -186,74 +196,6 @@
                 </div>
                 <div class="card-actions">
                     <a href="mutation/index.html" class="btn btn-primary">Ver Reporte Mutantes</a>
-                </div>
-            </div>
-
-            <!-- Semgrep SAST -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="icon-container">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    </div>
-                    <div class="status-badge"><span class="status-dot"></span> Activo</div>
-                </div>
-                <div class="card-body">
-                    <h2>Análisis Estático (Semgrep)</h2>
-                    <p>Escaneo estático del código (SAST) buscando fallas de seguridad comunes y alineación con OWASP Top 10.</p>
-                </div>
-                <div class="card-actions">
-                    <a href="semgrep/index.html" class="btn btn-primary">Ver Reporte SAST</a>
-                </div>
-            </div>
-
-            <!-- Snyk Dependencies -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="icon-container">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                    </div>
-                    <div class="status-badge"><span class="status-dot"></span> Activo</div>
-                </div>
-                <div class="card-body">
-                    <h2>Dependencias (Snyk)</h2>
-                    <p>Análisis de composición de software (SCA) para identificar vulnerabilidades conocidas en librerías de terceros.</p>
-                </div>
-                <div class="card-actions">
-                    <a href="snyk/index.html" class="btn btn-primary">Ver Reporte Snyk</a>
-                </div>
-            </div>
-
-            <!-- SonarCloud Quality -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="icon-container">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg>
-                    </div>
-                    <div class="status-badge"><span class="status-dot"></span> Activo</div>
-                </div>
-                <div class="card-body">
-                    <h2>Calidad (SonarCloud)</h2>
-                    <p>Análisis integral de calidad, cobertura, bugs y código limpio procesados en la nube de SonarCloud.</p>
-                </div>
-                <div class="card-actions">
-                    <a href="sonar/index.html" class="btn btn-primary">Ver Reporte Calidad</a>
-                </div>
-            </div>
-
-            <!-- Skill IA Security -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="icon-container">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                    </div>
-                    <div class="status-badge"><span class="status-dot"></span> Activo</div>
-                </div>
-                <div class="card-body">
-                    <h2>Skill de IA (Seguridad)</h2>
-                    <p>Escaneo de seguridad autónomo y generación inteligente de remediaciones con modelos LLM y Copilot Security.</p>
-                </div>
-                <div class="card-actions">
-                    <a href="skill-ia/index.html" class="btn btn-primary">Ver Reporte de IA</a>
                 </div>
             </div>
         </div>
