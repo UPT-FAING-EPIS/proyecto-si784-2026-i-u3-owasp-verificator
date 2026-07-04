@@ -4,6 +4,14 @@
 
 http://38.250.116.71:8000
 
+## SKILL: 
+
+https://github.com/GerardoCLL95/OWASP-P-Skill
+
+## Reportes de pruebas
+
+https://upt-faing-epis.github.io/proyecto-si784-2026-i-u3-owasp-verificator/index.html
+
 ## Extensión para VS Code y Open VSX
 
 La extensión **OWASP Verificator** está disponible en diferentes marketplaces para facilitar su instalación en distintos entornos de desarrollo compatibles con Visual Studio Code.
