@@ -19,14 +19,14 @@ if hasattr(sys.stdout, 'reconfigure'):
 
 
 # Configuración
-GH_PAT = "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"
+GH_PAT = "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"
 REPO = "UPT-FAING-EPIS/proyecto-si784-2026-i-u3-owasp-verificator"
 
 SECRETS = {
     "SNYK_TOKEN": "snyk_uat.1fcad39e.eyJlIjoxNzg5NDAzNDgxLCJoIjoic255ay5pbyIsImoiOiJBWjdSUmd1UHUwcmdkR0xUbzhyNDZBIiwicyI6Iml1VmxkdG5LU2xxdmhydFRUZ2ZSR2ciLCJ0aWQiOiJBQUFBQUFBQUFBQUFBQUFBQUFBQUFBIn0.1bhE7zSYRcmAE5GCqqXVaRZocTl6XkH7wv4m0ejkXHd1kXvk27GJqLdNr1XcV3foTNxAZ4Z1Y4LclopeN236Bg",
     "SONAR_TOKEN": "96788ff57be3d418fa9f4b232e0015ad0f686a7b",
     "OWASP_VERIFICATOR_TOKEN": "5b728645-7043-4ce5-8404-319d77f965fb",
-    "GH_PAT": "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"
+    "GH_PAT": "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"
 }
 
 def encrypt(public_key: str, secret_value: str) -> str:

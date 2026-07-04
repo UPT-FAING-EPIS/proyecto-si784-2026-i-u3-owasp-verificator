@@ -14,7 +14,7 @@ jobs:
 
     permissions:
       security-events: write
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout del repositorio
@@ -53,3 +53,434 @@ jobs:
             --config "p/python" \
             --text \
             app/ || true
+
+      - name: Generar Reporte Semgrep en HTML
+        if: always()
+        run: |
+          python3 -c "
+          import json, os
+
+          sarif_path = 'semgrep-results.sarif'
+          html_path = 'semgrep-report.html'
+          results = []
+
+          if os.path.exists(sarif_path):
+              try:
+                  with open(sarif_path, 'r') as f:
+                      data = json.load(f)
+                  runs = data.get('runs', [])
+                  if runs:
+                      results = runs[0].get('results', [])
+              except Exception as e:
+                  print('Error parsing SARIF:', e)
+
+          total = len(results)
+          errors = sum(1 for r in results if r.get('level') == 'error')
+          warnings = sum(1 for r in results if r.get('level') in ('warning', 'default'))
+          notes = total - errors - warnings
+
+          rows = ''
+          for idx, r in enumerate(results, 1):
+              rule_id = r.get('ruleId', 'N/A')
+              msg = r.get('message', {}).get('text', 'N/A')
+              level = r.get('level', 'warning').lower()
+              
+              loc = r.get('locations', [{}])[0].get('physicalLocation', {})
+              file_path = loc.get('artifactLocation', {}).get('uri', 'Unknown')
+              line = loc.get('region', {}).get('startLine', '?')
+              
+              badge_cls = 'badge-error' if level == 'error' else 'badge-warn' if level in ('warning', 'default') else 'badge-info'
+              badge_lbl = level.upper()
+
+              rows += f'''
+              <tr>
+                  <td>{idx}</td>
+                  <td><span class=\"badge {badge_cls}\">{badge_lbl}</span></td>
+                  <td><code>{rule_id}</code></td>
+                  <td>{file_path}:{line}</td>
+                  <td>{msg}</td>
+              </tr>
+              '''
+
+          if not results:
+              rows = '<tr><td colspan=\"5\" style=\"text-align:center; padding: 3rem; color: #10b981;\">🎉 ¡No se encontraron vulnerabilidades SAST con Semgrep!</td></tr>'
+
+          html_content = f'''<!DOCTYPE html>
+          <html lang=\"es\">
+          <head>
+              <meta charset=\"UTF-8\">
+              <title>Reporte Semgrep SAST</title>
+              <link href=\"https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap\" rel=\"stylesheet\">
+              <style>
+                  body {{
+                      font-family: 'Plus Jakarta Sans', sans-serif;
+                      background-color: #020617;
+                      color: #f8fafc;
+                      margin: 0; padding: 2rem;
+                  }}
+                  .container {{ max-width: 1200px; margin: 0 auto; }}
+                  header {{ margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 1.5rem; }}
+                  h1 {{ font-family: 'Outfit', sans-serif; font-size: 2.2rem; margin: 0; background: linear-gradient(to right, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }}
+                  .stats {{ display: flex; gap: 1.5rem; margin-bottom: 2rem; }}
+                  .stat-card {{ background: rgba(30,41,59,0.5); border: 1px solid rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px; flex: 1; text-align: center; }}
+                  .stat-card h3 {{ margin: 0 0 0.5rem 0; color: #94a3b8; font-size: 0.9rem; font-weight: 500; text-transform: uppercase; }}
+                  .stat-val {{ font-size: 1.8rem; font-weight: 700; }}
+                  table {{ width: 100%; border-collapse: collapse; background: rgba(30,41,59,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; overflow: hidden; }}
+                  th, td {{ padding: 1rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }}
+                  th {{ background: rgba(30,41,59,0.6); color: #94a3b8; font-weight: 600; font-size: 0.9rem; }}
+                  tr:last-child td {{ border-bottom: none; }}
+                  code {{ background: rgba(255,255,255,0.05); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; color: #ec4899; }}
+                  .badge {{ padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; display: inline-block; }}
+                  .badge-error {{ background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid #ef4444; }}
+                  .badge-warn {{ background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid #f59e0b; }}
+                  .badge-info {{ background: rgba(59,130,246,0.2); color: #3b82f6; border: 1px solid #3b82f6; }}
+                  .back-btn {{ display: inline-block; margin-bottom: 1.5rem; color: #6366f1; text-decoration: none; font-weight: 600; }}
+                  .back-btn:hover {{ text-decoration: underline; }}
+              </style>
+          </head>
+          <body>
+              <div class=\"container\">
+                  <a href=\"../index.html\" class=\"back-btn\">← Volver al Panel</a>
+                  <header>
+                      <h1>Reporte de Análisis Estático (Semgrep)</h1>
+                      <p style=\"color: #94a3b8; margin: 0.5rem 0 0 0;\">Resultado del escaneo de seguridad SAST sobre el código fuente</p>
+                  </header>
+                  <div class=\"stats\">
+                      <div class=\"stat-card\"><h3 style=\"color: #ec4899;\">Total Hallazgos</h3><div class=\"stat-val\">{total}</div></div>
+                      <div class=\"stat-card\"><h3 style=\"color: #ef4444;\">Errores / Críticos</h3><div class=\"stat-val\">{errors}</div></div>
+                      <div class=\"stat-card\"><h3 style=\"color: #f59e0b;\">Advertencias</h3><div class=\"stat-val\">{warnings}</div></div>
+                  </div>
+                  <table>
+                      <thead>
+                          <tr>
+                              <th style=\"width: 5%;\">#</th>
+                              <th style=\"width: 12%;\">Severidad</th>
+                              <th style=\"width: 25%;\">Regla</th>
+                              <th style=\"width: 25%;\">Ubicación</th>
+                              <th style=\"width: 33%;\">Descripción</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {rows}
+                      </tbody>
+                  </table>
+              </div>
+          </body>
+          </html>
+          '''
+
+          with open(html_path, 'w', encoding='utf-8') as f:
+              f.write(html_content)
+          print('Report HTML generated successfully.')
+          "
+
+      - name: Preparar reportes para GH Pages
+        if: always()
+        run: |
+          mkdir -p public-semgrep
+          if [ -f semgrep-report.html ]; then
+            cp semgrep-report.html public-semgrep/index.html
+          else
+            echo "<h1>Reporte de Semgrep no disponible</h1>" > public-semgrep/index.html
+          fi
+
+      - name: Deploy Reporte Semgrep a GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public-semgrep
+          destination_dir: semgrep
+          keep_files: true
+
+      - name: Generar e integrar Index Dashboard
+        if: always()
+        run: |
+          mkdir -p public-root
+          cat << 'EOF' > public-root/index.html
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>OWASP Verificator - Panel de Pruebas</title>
+              <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+              <style>
+                  :root {
+                      --bg-gradient-start: #0f172a;
+                      --bg-gradient-end: #020617;
+                      --card-bg: rgba(30, 41, 59, 0.4);
+                      --card-border: rgba(255, 255, 255, 0.08);
+                      --card-border-hover: rgba(99, 102, 241, 0.4);
+                      --text-main: #f8fafc;
+                      --text-muted: #94a3b8;
+                      --accent-primary: #6366f1;
+                      --accent-secondary: #a855f7;
+                      --success: #10b981;
+                      --success-glow: rgba(16, 185, 129, 0.2);
+                      --button-bg: rgba(99, 102, 241, 0.1);
+                      --button-bg-hover: rgba(99, 102, 241, 0.2);
+                  }
+                  * { box-sizing: border-box; margin: 0; padding: 0; }
+                  body {
+                      font-family: 'Plus Jakarta Sans', sans-serif;
+                      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+                      color: var(--text-main);
+                      min-height: 100vh;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      justify-content: space-between;
+                      padding: 2rem 1rem;
+                      overflow-x: hidden;
+                  }
+                  header { text-align: center; margin-bottom: 3rem; width: 100%; max-width: 1200px; }
+                  h1 {
+                      font-family: 'Outfit', sans-serif;
+                      font-size: 2.5rem;
+                      font-weight: 800;
+                      background: linear-gradient(to right, #6366f1, #a855f7, #ec4899);
+                      -webkit-background-clip: text;
+                      -webkit-text-fill-color: transparent;
+                      margin-bottom: 0.5rem;
+                      letter-spacing: -0.02em;
+                  }
+                  .subtitle { color: var(--text-muted); font-size: 1.1rem; font-weight: 400; }
+                  main { width: 100%; max-width: 1200px; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+                  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; width: 100%; }
+                  .card {
+                      background: var(--card-bg);
+                      border: 1px solid var(--card-border);
+                      border-radius: 16px;
+                      padding: 2rem;
+                      backdrop-filter: blur(12px);
+                      -webkit-backdrop-filter: blur(12px);
+                      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                      position: relative;
+                      overflow: hidden;
+                      display: flex;
+                      flex-direction: column;
+                      justify-content: space-between;
+                  }
+                  .card::before {
+                      content: '';
+                      position: absolute;
+                      top: 0; left: 0; width: 100%; height: 100%;
+                      background: radial-gradient(800px circle at var(--x, 0) var(--y, 0), rgba(99, 102, 241, 0.06), transparent 40%);
+                      z-index: 0; pointer-events: none;
+                  }
+                  .card:hover {
+                      transform: translateY(-5px);
+                      border-color: var(--card-border-hover);
+                      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(99, 102, 241, 0.1);
+                  }
+                  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; position: relative; z-index: 1; }
+                  .icon-container { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 0.75rem; display: inline-flex; align-items: center; justify-content: center; color: var(--accent-primary); }
+                  .status-badge { background: var(--success-glow); border: 1px solid var(--success); color: var(--success); padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; }
+                  .status-dot { width: 6px; height: 6px; background-color: var(--success); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--success); animation: pulse 2s infinite; }
+                  @keyframes pulse {
+                      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+                      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+                      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+                  }
+                  .card-body { position: relative; z-index: 1; margin-bottom: 2rem; }
+                  .card h2 { font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main); }
+                  .card p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; }
+                  .card-actions { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 0.75rem; }
+                  .btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.8rem 1.5rem; border-radius: 10px; font-size: 0.95rem; font-weight: 600; text-decoration: none; transition: all 0.3s; cursor: pointer; width: 100%; }
+                  .btn-primary { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; border: none; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+                  .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); }
+                  .btn-secondary { background: var(--button-bg); color: var(--text-main); border: 1px solid rgba(99, 102, 241, 0.2); }
+                  .btn-secondary:hover { background: var(--button-bg-hover); border-color: rgba(99, 102, 241, 0.4); transform: translateY(-2px); }
+                  footer { margin-top: 4rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 2rem; width: 100%; max-width: 1200px; }
+              </style>
+          </head>
+          <body>
+              <header>
+                  <h1>OWASP Verificator</h1>
+                  <div class="subtitle">Panel de Control de Pruebas de Calidad y Seguridad</div>
+              </header>
+              <main>
+                  <div class="grid">
+                      <!-- Unit Tests -->
+                      <div class="card">
+                          <div class="card-header">
+                              <div class="icon-container">
+                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                              </div>
+                              <div class="status-badge"><span class="status-dot"></span> Activo</div>
+                          </div>
+                          <div class="card-body">
+                              <h2>Pruebas Unitarias</h2>
+                              <p>Validación de componentes y lógica individual de la aplicación con Pytest. Incluye reporte de cobertura de código.</p>
+                          </div>
+                          <div class="card-actions">
+                              <a href="unit/index.html" class="btn btn-primary">Ver Reporte Pytest</a>
+                              <a href="unit/coverage/index.html" class="btn btn-secondary">Ver Cobertura</a>
+                          </div>
+                      </div>
+
+                      <!-- Integration Tests -->
+                      <div class="card">
+                          <div class="card-header">
+                              <div class="icon-container">
+                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="14" height="14" rx="2" ry="2"/></svg>
+                              </div>
+                              <div class="status-badge"><span class="status-dot"></span> Activo</div>
+                          </div>
+                          <div class="card-body">
+                              <h2>Pruebas de Integración</h2>
+                              <p>Verificación del flujo de datos y la interacción entre múltiples módulos de la aplicación. Incluye reporte de cobertura.</p>
+                          </div>
+                          <div class="card-actions">
+                              <a href="integration/index.html" class="btn btn-primary">Ver Reporte Pytest</a>
+                              <a href="integration/coverage/index.html" class="btn btn-secondary">Ver Cobertura</a>
+                          </div>
+                      </div>
+
+                      <!-- UI Tests -->
+                      <div class="card">
+                          <div class="card-header">
+                              <div class="icon-container">
+                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                              </div>
+                              <div class="status-badge"><span class="status-dot"></span> Activo</div>
+                          </div>
+                          <div class="card-body">
+                              <h2>Pruebas de Interfaz (UI)</h2>
+                              <p>Pruebas de extremo a extremo (E2E) simulando la experiencia del usuario en el navegador utilizando Playwright.</p>
+                          </div>
+                          <div class="card-actions">
+                              <a href="ui/index.html" class="btn btn-primary">Ver Reporte UI</a>
+                          </div>
+                      </div>
+
+                      <!-- BDD Tests -->
+                      <div class="card">
+                          <div class="card-header">
+                              <div class="icon-container">
+                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                              </div>
+                              <div class="status-badge"><span class="status-dot"></span> Activo</div>
+                          </div>
+                          <div class="card-body">
+                              <h2>Pruebas BDD</h2>
+                              <p>Pruebas orientadas al comportamiento (Behavior-Driven Development) descritas en Gherkin y ejecutadas con Behave.</p>
+                          </div>
+                          <div class="card-actions">
+                              <a href="bdd/index.html" class="btn btn-primary">Ver Reporte BDD</a>
+                          </div>
+                      </div>
+
+                      <!-- Mutation Tests -->
+                      <div class="card">
+                          <div class="card-header">
+                              <div class="icon-container">
+                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2.5 3.19-2.5 5.5h20c0-2.31-1-4.24-2.5-5.5"/><path d="M12 2C6.5 2 2 6.5 2 12c0 1.2.22 2.35.63 3.42l3.22-3.22a4 4 0 0 1 5.66-5.66l3.22-3.22A9.92 9.92 0 0 0 12 2z"/><path d="M21.37 15.42c.41-1.07.63-2.22.63-3.42 0-5.5-4.5-10-10-10a9.92 9.92 0 0 0-3.42.63l3.22 3.22a4 4 0 0 1 5.66 5.66l3.22 3.22z"/></svg>
+                              </div>
+                              <div class="status-badge"><span class="status-dot"></span> Activo</div>
+                          </div>
+                          <div class="card-body">
+                              <h2>Pruebas de Mutación</h2>
+                              <p>Evaluación de la calidad de las pruebas introduciendo fallos controlados (mutantes) en el código con Mutmut.</p>
+                          </div>
+                          <div class="card-actions">
+                              <a href="mutation/index.html" class="btn btn-primary">Ver Reporte Mutantes</a>
+                          </div>
+                      </div>
+
+                      <!-- Semgrep SAST -->
+                      <div class="card">
+                          <div class="card-header">
+                              <div class="icon-container">
+                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                              </div>
+                              <div class="status-badge"><span class="status-dot"></span> Activo</div>
+                          </div>
+                          <div class="card-body">
+                              <h2>Análisis Estático (Semgrep)</h2>
+                              <p>Escaneo estático del código (SAST) buscando fallas de seguridad comunes y alineación con OWASP Top 10.</p>
+                          </div>
+                          <div class="card-actions">
+                              <a href="semgrep/index.html" class="btn btn-primary">Ver Reporte SAST</a>
+                          </div>
+                      </div>
+
+                      <!-- Snyk Dependencies -->
+                      <div class="card">
+                          <div class="card-header">
+                              <div class="icon-container">
+                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                              </div>
+                              <div class="status-badge"><span class="status-dot"></span> Activo</div>
+                          </div>
+                          <div class="card-body">
+                              <h2>Dependencias (Snyk)</h2>
+                              <p>Análisis de composición de software (SCA) para identificar vulnerabilidades conocidas en librerías de terceros.</p>
+                          </div>
+                          <div class="card-actions">
+                              <a href="snyk/index.html" class="btn btn-primary">Ver Reporte Snyk</a>
+                          </div>
+                      </div>
+
+                      <!-- SonarCloud Quality -->
+                      <div class="card">
+                          <div class="card-header">
+                              <div class="icon-container">
+                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg>
+                              </div>
+                              <div class="status-badge"><span class="status-dot"></span> Activo</div>
+                          </div>
+                          <div class="card-body">
+                              <h2>Calidad (SonarCloud)</h2>
+                              <p>Análisis integral de calidad, cobertura, bugs y código limpio procesados en la nube de SonarCloud.</p>
+                          </div>
+                          <div class="card-actions">
+                              <a href="sonar/index.html" class="btn btn-primary">Ver Reporte Calidad</a>
+                          </div>
+                      </div>
+
+                      <!-- Skill IA Security -->
+                      <div class="card">
+                          <div class="card-header">
+                              <div class="icon-container">
+                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                              </div>
+                              <div class="status-badge"><span class="status-dot"></span> Activo</div>
+                          </div>
+                          <div class="card-body">
+                              <h2>Skill de IA (Seguridad)</h2>
+                              <p>Escaneo de seguridad autónomo y generación inteligente de remediaciones con modelos LLM y Copilot Security.</p>
+                          </div>
+                          <div class="card-actions">
+                              <a href="skill-ia/index.html" class="btn btn-primary">Ver Reporte de IA</a>
+                          </div>
+                      </div>
+                  </div>
+              </main>
+              <footer>
+                  <p>OWASP Verificator &copy; 2026. Panel generado automáticamente mediante GitHub Actions.</p>
+              </footer>
+              <script>
+                  const cards = document.querySelectorAll('.card');
+                  cards.forEach(card => {
+                      card.addEventListener('mousemove', e => {
+                          const rect = card.getBoundingClientRect();
+                          const x = e.clientX - rect.left;
+                          const y = e.clientY - rect.top;
+                          card.style.setProperty('--x', `${x}px`);
+                          card.style.setProperty('--y', `${y}px`);
+                      });
+                  });
+              </script>
+          </body>
+          </html>
+          EOF
+
+      - name: Deploy Dashboard Index
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public-root
+          keep_files: true
