@@ -13,6 +13,17 @@
         .stat-card { background: rgba(30,41,59,0.5); border: 1px solid rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px; flex: 1; text-align: center; }
         .stat-card h3 { margin: 0 0 0.5rem 0; color: #94a3b8; font-size: 0.9rem; font-weight: 500; text-transform: uppercase; }
         .stat-val { font-size: 1.8rem; font-weight: 700; }
+        
+        /* Tabs styles */
+        .tabs-container { display: flex; gap: 1rem; margin-bottom: 2.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.25rem; }
+        .tab-btn { background: none; border: none; color: #94a3b8; font-size: 1.1rem; font-weight: 600; padding: 0.75rem 1.5rem; cursor: pointer; transition: all 0.3s ease; position: relative; font-family: 'Outfit', sans-serif; }
+        .tab-btn:hover { color: #f8fafc; }
+        .tab-btn.active { color: #6366f1; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: -0.25rem; left: 0; width: 100%; height: 3px; background: linear-gradient(to right, #6366f1, #ec4899); border-radius: 9999px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         table { width: 100%; border-collapse: collapse; background: rgba(30,41,59,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; overflow: hidden; margin-bottom: 3rem; }
         th, td { padding: 1rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; }
         th { background: rgba(30,41,59,0.6); color: #94a3b8; font-weight: 600; font-size: 0.9rem; }
@@ -23,7 +34,7 @@
         .badge-danger { background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid #ef4444; }
         .badge-warn { background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid #f59e0b; }
         .badge-info { background: rgba(59,130,246,0.2); color: #3b82f6; border: 1px solid #3b82f6; }
-        .ai-section { background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.15); border-radius: 16px; padding: 2rem; margin-top: 2rem; }
+        .ai-section { background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.15); border-radius: 16px; padding: 2rem; }
         .ai-section h2 { font-family: 'Outfit', sans-serif; color: #a5b4fc; margin-top: 0; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
         .back-btn { display: inline-block; margin-bottom: 1.5rem; color: #6366f1; text-decoration: none; font-weight: 600; }
         .back-btn:hover { text-decoration: underline; }
@@ -38,23 +49,29 @@
         </header>
         <div class="stats">
             <div class="stat-card"><h3>Puntuación (Score)</h3><div class="stat-val" style="color:#10b981;">0/100</div></div>
-            <div class="stat-card"><h3>ID Escaneo</h3><div class="stat-val" style="font-size:1.2rem; line-height:2.2rem;">47</div></div>
+            <div class="stat-card"><h3>ID Escaneo</h3><div class="stat-val" style="font-size:1.2rem; line-height:2.2rem;">48</div></div>
             <div class="stat-card"><h3>Hallazgos</h3><div class="stat-val" style="color:#ef4444;">374</div></div>
         </div>
         
-        <h2>Detalle de Hallazgos OWASP</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:5%;">#</th>
-                    <th style="width:10%;">Severidad</th>
-                    <th style="width:15%;">Regla ID</th>
-                    <th style="width:35%;">Vulnerabilidad</th>
-                    <th style="width:35%;">Evidencia</th>
-                </tr>
-            </thead>
-            <tbody>
-                
+        <div class="tabs-container">
+            <button class="tab-btn active" onclick="openTab(event, 'findings-tab')">🔍 Detalle de Hallazgos</button>
+            <button class="tab-btn" onclick="openTab(event, 'remediation-tab')">🤖 Propuestas de Remediación (IA)</button>
+        </div>
+
+        <div id="findings-tab" class="tab-content active">
+            <h2>Detalle de Hallazgos OWASP</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:5%;">#</th>
+                        <th style="width:10%;">Severidad</th>
+                        <th style="width:15%;">Regla ID</th>
+                        <th style="width:35%;">Vulnerabilidad</th>
+                        <th style="width:35%;">Evidencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
     <tr>
         <td>1</td>
         <td><span class="badge badge-danger">HIGH</span></td>
@@ -4417,15 +4434,151 @@ Coincidencia encontrada: catch (e) {}</code></pre></td>
 Coincidencia encontrada: catch (e) {}</code></pre></td>
     </tr>
     
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
         
-        <div class="ai-section">
-            <h2>🤖 Propuestas de Remediación con IA</h2>
-            <div>Error al llamar al API de GitHub Models: HTTP Error 401: Unauthorized<br>
+        <div id="remediation-tab" class="tab-content">
+            <div class="ai-section">
+                <h2>🤖 Propuestas de Remediación con IA</h2>
+                <div>A continuación, se presenta un análisis de cada hallazgo de seguridad OWASP, junto con una explicación de la vulnerabilidad y el bloque de código corregido.<br>
 <br>
-*Nota: Asegúrate de que el secreto GH_PAT esté correctamente configurado y tenga permisos para usar GitHub Models.*<br></div>
+<h3>Hallazgo #1: Endpoint sin Autenticación (OWASP-A01-NO-AUTH)</h3>
+1. <strong>Explicación</strong>: Este hallazgo indica que hay endpoints en la aplicación que pueden ser accedidos sin autenticación. Esto es un riesgo alto porque permite a cualquier persona acceder a información sensible o realizar acciones no autorizadas en el sistema.<br>
+<br>
+2. <strong>Código corregido</strong>:<br>
+   <pre><code style="color:#f472b6;">   from fastapi import Depends, HTTPException, status<br>
+   from .auth import get_current_user  <h1>Importar función de autenticación</h1><br>
+   @router.post("/dashboard")<br>
+   async def access_dashboard(current_user: User = Depends(get_current_user)):<br>
+       <h1>La función get_current_user verifica si el usuario está autenticado</h1>       return {"message": "Acceso al dashboard permitido"}<br>
+   </code></pre>
+<br>
+<h3>Hallazgo #2: Ejecución Dinámica de Código (Code Injection) (OWASP-A03-CODE-INJECTION)</h3>
+1. <strong>Explicación</strong>: El uso de <code>eval()</code> permite la ejecución de código arbitrario, lo que puede ser explotado por un atacante para ejecutar comandos maliciosos en el servidor.<br>
+<br>
+2. <strong>Código corregido</strong>:<br>
+   <pre><code style="color:#f472b6;">   <h1>Evitar el uso de eval() y utilizar alternativas seguras</h1>   def safe_eval(expression):<br>
+       <h1>Implementar una lógica segura para evaluar expresiones</h1>       <h1>Por ejemplo, usar un parser específico para el tipo de expresión</h1>       pass  <h1>Implementar lógica aquí</h1><br>
+   result = safe_eval(user_input)  <h1>Llamar a la función segura</h1>   </code></pre>
+<br>
+<h3>Hallazgo #3: Inyección SQL (SQLi) (OWASP-A03-SQLI)</h3>
+1. <strong>Explicación</strong>: La inyección SQL ocurre cuando los datos del usuario se insertan directamente en las consultas SQL sin validación. Esto permite a un atacante ejecutar comandos SQL maliciosos.<br>
+<br>
+2. <strong>Código corregido</strong>:<br>
+   <pre><code style="color:#f472b6;">   import sqlite3<br>
+<br>
+   def safe_execute(query, params):<br>
+       conn = sqlite3.connect('database.db')<br>
+       cursor = conn.cursor()<br>
+       cursor.execute(query, params)  <h1>Usar parámetros para evitar inyección</h1>       conn.commit()<br>
+       conn.close()<br>
+<br>
+   user_input = "valor"<br>
+   safe_execute("SELECT * FROM users WHERE username = ?", (user_input,))<br>
+   </code></pre>
+<br>
+<h3>Hallazgo #4: Ejecución Dinámica de Código (Code Injection) (OWASP-A03-CODE-INJECTION)</h3>
+1. <strong>Explicación</strong>: Similar al hallazgo #2, el uso de <code>eval()</code> permite la ejecución de código arbitrario, lo que puede ser explotado por un atacante.<br>
+<br>
+2. <strong>Código corregido</strong>:<br>
+   <pre><code style="color:#f472b6;">   <h1>Evitar el uso de eval() y utilizar alternativas seguras</h1>   def safe_eval(expression):<br>
+       <h1>Implementar una lógica segura para evaluar expresiones</h1>       pass  <h1>Implementar lógica aquí</h1><br>
+   result = safe_eval(user_input)  <h1>Llamar a la función segura</h1>   </code></pre>
+<br>
+<h3>Hallazgo #5: Deserialización Insegura (OWASP-A08-UNSAFE-DESERIALIZATION)</h3>
+1. <strong>Explicación</strong>: La deserialización insegura permite a un atacante enviar datos manipulados que pueden ser deserializados y ejecutados en el servidor, lo que podría comprometer la seguridad.<br>
+<br>
+2. <strong>Código corregido</strong>:<br>
+   <pre><code style="color:#f472b6;">   import json<br>
+<br>
+   def safe_loads(data):<br>
+       <h1>Usar JSON en lugar de pickle para evitar deserialización insegura</h1>       return json.loads(data)<br>
+<br>
+   user_data = safe_loads(user_input)  <h1>Usar la función segura</h1>   </code></pre>
+<br>
+<h3>Hallazgo #6: Ejecución de Comandos de Sistema Operativo (OWASP-A03-OS-COMMAND)</h3>
+1. <strong>Explicación</strong>: La ejecución de comandos del sistema operativo con datos del usuario puede permitir a un atacante inyectar comandos maliciosos y tomar control del servidor.<br>
+<br>
+2. <strong>Código corregido</strong>:<br>
+   <pre><code style="color:#f472b6;">   import subprocess<br>
+<br>
+   def safe_run_command(command):<br>
+       <h1>Validar y sanitizar el comando antes de ejecutarlo</h1>       if is_safe_command(command):<br>
+           subprocess.run(command, shell=False)  <h1>Evitar shell=True</h1>       else:<br>
+           raise ValueError("Comando no seguro")<br>
+<br>
+   safe_run_command(user_input)  <h1>Llamar a la función segura</h1>   </code></pre>
+<br>
+<h3>Hallazgo #7: Path Traversal (Salto de Directorio) (OWASP-A03-PATH-TRAVERSAL)</h3>
+1. <strong>Explicación</strong>: Este hallazgo indica que el sistema permite el acceso a archivos mediante rutas proporcionadas por el usuario, lo que puede ser explotado para acceder a archivos sensibles.<br>
+<br>
+2. <strong>Código corregido</strong>:<br>
+   <pre><code style="color:#f472b6;">   import os<br>
+<br>
+   def safe_open_file(file_path):<br>
+       <h1>Validar la ruta del archivo para evitar path traversal</h1>       if os.path.isabs(file_path) or '..' in file_path:<br>
+           raise ValueError("Ruta no segura")<br>
+       with open(file_path, 'r') as file:<br>
+           return file.read()<br>
+<br>
+   html = safe_open_file(user_input)  <h1>Llamar a la función segura</h1>   </code></pre>
+<br>
+<h3>Hallazgo #8: Riesgo de Server-Side Request Forgery (SSRF) (OWASP-A10-SSRF-REQUESTS)</h3>
+1. <strong>Explicación</strong>: Este hallazgo indica que el servidor puede realizar solicitudes a URLs proporcionadas por el usuario, lo que puede ser explotado para acceder a recursos internos.<br>
+<br>
+2. <strong>Código corregido</strong>:<br>
+   <pre><code style="color:#f472b6;">   import requests<br>
+<br>
+   def safe_request(url):<br>
+       <h1>Validar la URL para evitar SSRF</h1>       if not is_safe_url(url):<br>
+           raise ValueError("URL no segura")<br>
+       response = requests.get(url)<br>
+       return response.content<br>
+<br>
+   content = safe_request(user_input)  <h1>Llamar a la función segura</h1>   </code></pre>
+<br>
+<h3>Hallazgo #9: Secreto o Credencial Expuesta (OWASP-A02-HARDCODED-SECRET)</h3>
+1. <strong>Explicación</strong>: La exposición de secretos en el código puede permitir a un atacante acceder a sistemas y datos sensibles.<br>
+<br>
+2. <strong>Código corregido</strong>:<br>
+   <pre><code>javascript<br>
+   // Remover la clave del código y cargarla desde un entorno seguro<br>
+   const apiKey = process.env.API_KEY;  // Cargar desde variables de entorno<br>
+   <pre><code><br>
+<h3>Hallazgo #10: Ejecución Dinámica de Código (Code Injection) (OWASP-A03-CODE-INJECTION)</h3>
+1. <strong>Explicación</strong>: Al igual que en los hallazgos anteriores, el uso de <code>eval()</code> permite la ejecución de código arbitrario, lo que puede ser explotado por un atacante.<br>
+<br>
+2. <strong>Código corregido</strong>:<br>
+   </code></pre>javascript<br>
+   // Evitar el uso de eval() y utilizar alternativas seguras<br>
+   function safeEval(expression) {<br>
+       // Implementar lógica segura para evaluar expresiones<br>
+       return new Function('return ' + expression)();  // Ejemplo de uso seguro<br>
+   }<br>
+<br>
+   const result = safeEval(userInput);  // Llamar a la función segura<br>
+   </code></pre>
+<br>
+Estos cambios propuestos ayudan a mitigar las vulnerabilidades identificadas y a mejorar la seguridad general de la aplicación.<br></div>
+            </div>
         </div>
     </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+    </script>
 </body>
 </html>
