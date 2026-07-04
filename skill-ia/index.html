@@ -49,7 +49,7 @@
         </header>
         <div class="stats">
             <div class="stat-card"><h3>Puntuación (Score)</h3><div class="stat-val" style="color:#10b981;">0/100</div></div>
-            <div class="stat-card"><h3>ID Escaneo</h3><div class="stat-val" style="font-size:1.2rem; line-height:2.2rem;">48</div></div>
+            <div class="stat-card"><h3>ID Escaneo</h3><div class="stat-val" style="font-size:1.2rem; line-height:2.2rem;">53</div></div>
             <div class="stat-card"><h3>Hallazgos</h3><div class="stat-val" style="color:#ef4444;">374</div></div>
         </div>
         
@@ -4441,126 +4441,119 @@ Coincidencia encontrada: catch (e) {}</code></pre></td>
         <div id="remediation-tab" class="tab-content">
             <div class="ai-section">
                 <h2>🤖 Propuestas de Remediación con IA</h2>
-                <div>A continuación, se presenta un análisis de cada hallazgo de seguridad OWASP, junto con una explicación de la vulnerabilidad y el bloque de código corregido.<br>
+                <div>A continuación, se presenta un análisis detallado de cada hallazgo de seguridad OWASP, junto con una explicación de la vulnerabilidad y el bloque de código corregido para cada uno.<br>
 <br>
-<h3>Hallazgo #1: Endpoint sin Autenticación (OWASP-A01-NO-AUTH)</h3>
-1. <strong>Explicación</strong>: Este hallazgo indica que hay endpoints en la aplicación que pueden ser accedidos sin autenticación. Esto es un riesgo alto porque permite a cualquier persona acceder a información sensible o realizar acciones no autorizadas en el sistema.<br>
-<br>
-2. <strong>Código corregido</strong>:<br>
+<h3>Hallazgo #1: Endpoint sin Autenticación</h3>1. <strong>Explicación</strong>: La falta de autenticación en un endpoint permite que cualquier usuario acceda a funciones o datos sensibles sin restricciones. Esto puede llevar a la exposición de información confidencial o a la manipulación de datos.
+   <br>
+2. <strong>Código Corregido</strong>:<br>
    <pre><code style="color:#f472b6;">   from fastapi import Depends, HTTPException, status<br>
    from .auth import get_current_user  <h1>Importar función de autenticación</h1><br>
    @router.post("/dashboard")<br>
    async def access_dashboard(current_user: User = Depends(get_current_user)):<br>
-       <h1>La función get_current_user verifica si el usuario está autenticado</h1>       return {"message": "Acceso al dashboard permitido"}<br>
+       <h1>Solo los usuarios autenticados pueden acceder a este endpoint</h1>       return {"message": "Acceso al dashboard permitido"}<br>
    </code></pre>
 <br>
-<h3>Hallazgo #2: Ejecución Dinámica de Código (Code Injection) (OWASP-A03-CODE-INJECTION)</h3>
-1. <strong>Explicación</strong>: El uso de <code>eval()</code> permite la ejecución de código arbitrario, lo que puede ser explotado por un atacante para ejecutar comandos maliciosos en el servidor.<br>
+<h3>Hallazgo #2: Ejecución Dinámica de Código (Code Injection)</h3>1. <strong>Explicación</strong>: Usar <code>eval()</code> permite ejecutar código arbitrario que puede ser manipulado por un atacante, lo que puede comprometer la seguridad del servidor.
+   <br>
+2. <strong>Código Corregido</strong>:<br>
+   <pre><code style="color:#f472b6;">   <h1>Evitar el uso de eval() y usar alternativas seguras</h1>   def safe_eval(expression):<br>
+       <h1>Implementar lógica segura para evaluar expresiones</h1>       <h1>Por ejemplo, usar un parser específico para la expresión</h1>       pass<br>
 <br>
-2. <strong>Código corregido</strong>:<br>
-   <pre><code style="color:#f472b6;">   <h1>Evitar el uso de eval() y utilizar alternativas seguras</h1>   def safe_eval(expression):<br>
-       <h1>Implementar una lógica segura para evaluar expresiones</h1>       <h1>Por ejemplo, usar un parser específico para el tipo de expresión</h1>       pass  <h1>Implementar lógica aquí</h1><br>
    result = safe_eval(user_input)  <h1>Llamar a la función segura</h1>   </code></pre>
 <br>
-<h3>Hallazgo #3: Inyección SQL (SQLi) (OWASP-A03-SQLI)</h3>
-1. <strong>Explicación</strong>: La inyección SQL ocurre cuando los datos del usuario se insertan directamente en las consultas SQL sin validación. Esto permite a un atacante ejecutar comandos SQL maliciosos.<br>
-<br>
-2. <strong>Código corregido</strong>:<br>
+<h3>Hallazgo #3: Inyección SQL (SQLi)</h3>1. <strong>Explicación</strong>: La inyección SQL ocurre cuando se permite que los datos del usuario se inserten directamente en las consultas SQL, lo que puede permitir a un atacante ejecutar comandos SQL maliciosos.
+   <br>
+2. <strong>Código Corregido</strong>:<br>
    <pre><code style="color:#f472b6;">   import sqlite3<br>
 <br>
-   def safe_execute(query, params):<br>
+   def get_user_data(user_id):<br>
        conn = sqlite3.connect('database.db')<br>
        cursor = conn.cursor()<br>
-       cursor.execute(query, params)  <h1>Usar parámetros para evitar inyección</h1>       conn.commit()<br>
-       conn.close()<br>
-<br>
-   user_input = "valor"<br>
-   safe_execute("SELECT * FROM users WHERE username = ?", (user_input,))<br>
+       <h1>Usar parámetros en lugar de interpolación de cadenas</h1>       cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))<br>
+       return cursor.fetchall()<br>
    </code></pre>
 <br>
-<h3>Hallazgo #4: Ejecución Dinámica de Código (Code Injection) (OWASP-A03-CODE-INJECTION)</h3>
-1. <strong>Explicación</strong>: Similar al hallazgo #2, el uso de <code>eval()</code> permite la ejecución de código arbitrario, lo que puede ser explotado por un atacante.<br>
+<h3>Hallazgo #4: Ejecución Dinámica de Código (Code Injection)</h3>1. <strong>Explicación</strong>: Similar al hallazgo #2, el uso de <code>eval()</code> permite la ejecución de código arbitrario, lo que puede ser explotado por un atacante.
+   <br>
+2. <strong>Código Corregido</strong>:<br>
+   <pre><code style="color:#f472b6;">   <h1>Evitar el uso de eval() y usar alternativas seguras</h1>   def safe_eval(expression):<br>
+       <h1>Implementar lógica segura para evaluar expresiones</h1>       pass<br>
 <br>
-2. <strong>Código corregido</strong>:<br>
-   <pre><code style="color:#f472b6;">   <h1>Evitar el uso de eval() y utilizar alternativas seguras</h1>   def safe_eval(expression):<br>
-       <h1>Implementar una lógica segura para evaluar expresiones</h1>       pass  <h1>Implementar lógica aquí</h1><br>
    result = safe_eval(user_input)  <h1>Llamar a la función segura</h1>   </code></pre>
 <br>
-<h3>Hallazgo #5: Deserialización Insegura (OWASP-A08-UNSAFE-DESERIALIZATION)</h3>
-1. <strong>Explicación</strong>: La deserialización insegura permite a un atacante enviar datos manipulados que pueden ser deserializados y ejecutados en el servidor, lo que podría comprometer la seguridad.<br>
-<br>
-2. <strong>Código corregido</strong>:<br>
+<h3>Hallazgo #5: Deserialización Insegura</h3>1. <strong>Explicación</strong>: La deserialización insegura permite que un atacante envíe datos manipulados que pueden ser deserializados y ejecutados, comprometiendo la seguridad del sistema.
+   <br>
+2. <strong>Código Corregido</strong>:<br>
    <pre><code style="color:#f472b6;">   import json<br>
 <br>
    def safe_loads(data):<br>
        <h1>Usar JSON en lugar de pickle para evitar deserialización insegura</h1>       return json.loads(data)<br>
 <br>
-   user_data = safe_loads(user_input)  <h1>Usar la función segura</h1>   </code></pre>
+   data = safe_loads(user_input)  <h1>Cargar datos de manera segura</h1>   </code></pre>
 <br>
-<h3>Hallazgo #6: Ejecución de Comandos de Sistema Operativo (OWASP-A03-OS-COMMAND)</h3>
-1. <strong>Explicación</strong>: La ejecución de comandos del sistema operativo con datos del usuario puede permitir a un atacante inyectar comandos maliciosos y tomar control del servidor.<br>
-<br>
-2. <strong>Código corregido</strong>:<br>
+<h3>Hallazgo #6: Ejecución de Comandos de Sistema Operativo</h3>1. <strong>Explicación</strong>: Usar <code>subprocess.Popen()</code> con datos proporcionados por el usuario puede permitir a un atacante ejecutar comandos arbitrarios en el sistema operativo.
+   <br>
+2. <strong>Código Corregido</strong>:<br>
    <pre><code style="color:#f472b6;">   import subprocess<br>
 <br>
    def safe_run_command(command):<br>
-       <h1>Validar y sanitizar el comando antes de ejecutarlo</h1>       if is_safe_command(command):<br>
-           subprocess.run(command, shell=False)  <h1>Evitar shell=True</h1>       else:<br>
-           raise ValueError("Comando no seguro")<br>
+       <h1>Validar y sanitizar el comando antes de ejecutarlo</h1>       if command in allowed_commands:<br>
+           subprocess.run(command, shell=True)<br>
+       else:<br>
+           raise ValueError("Comando no permitido")<br>
 <br>
-   safe_run_command(user_input)  <h1>Llamar a la función segura</h1>   </code></pre>
+   safe_run_command(user_input)  <h1>Ejecutar comando de manera segura</h1>   </code></pre>
 <br>
-<h3>Hallazgo #7: Path Traversal (Salto de Directorio) (OWASP-A03-PATH-TRAVERSAL)</h3>
-1. <strong>Explicación</strong>: Este hallazgo indica que el sistema permite el acceso a archivos mediante rutas proporcionadas por el usuario, lo que puede ser explotado para acceder a archivos sensibles.<br>
-<br>
-2. <strong>Código corregido</strong>:<br>
+<h3>Hallazgo #7: Path Traversal (Salto de Directorio)</h3>1. <strong>Explicación</strong>: Permitir que los usuarios especifiquen rutas de archivos puede llevar a un ataque de salto de directorio, donde un atacante puede acceder a archivos sensibles en el servidor.
+   <br>
+2. <strong>Código Corregido</strong>:<br>
    <pre><code style="color:#f472b6;">   import os<br>
 <br>
    def safe_open_file(file_path):<br>
-       <h1>Validar la ruta del archivo para evitar path traversal</h1>       if os.path.isabs(file_path) or '..' in file_path:<br>
-           raise ValueError("Ruta no segura")<br>
-       with open(file_path, 'r') as file:<br>
+       <h1>Validar la ruta del archivo para prevenir path traversal</h1>       base_path = "/safe/base/directory"<br>
+       full_path = os.path.join(base_path, file_path)<br>
+       if os.path.commonprefix([full_path, base_path]) != base_path:<br>
+           raise ValueError("Acceso a ruta no permitido")<br>
+       with open(full_path, 'r') as file:<br>
            return file.read()<br>
 <br>
-   html = safe_open_file(user_input)  <h1>Llamar a la función segura</h1>   </code></pre>
+   content = safe_open_file(user_input)  <h1>Abrir archivo de manera segura</h1>   </code></pre>
 <br>
-<h3>Hallazgo #8: Riesgo de Server-Side Request Forgery (SSRF) (OWASP-A10-SSRF-REQUESTS)</h3>
-1. <strong>Explicación</strong>: Este hallazgo indica que el servidor puede realizar solicitudes a URLs proporcionadas por el usuario, lo que puede ser explotado para acceder a recursos internos.<br>
-<br>
-2. <strong>Código corregido</strong>:<br>
+<h3>Hallazgo #8: Riesgo de Server-Side Request Forgery (SSRF)</h3>1. <strong>Explicación</strong>: Permitir que los usuarios especifiquen URLs puede llevar a un ataque SSRF, donde un atacante puede hacer que el servidor realice solicitudes a recursos internos o externos no autorizados.
+   <br>
+2. <strong>Código Corregido</strong>:<br>
    <pre><code style="color:#f472b6;">   import requests<br>
 <br>
    def safe_request(url):<br>
-       <h1>Validar la URL para evitar SSRF</h1>       if not is_safe_url(url):<br>
-           raise ValueError("URL no segura")<br>
-       response = requests.get(url)<br>
-       return response.content<br>
+       <h1>Validar la URL para prevenir SSRF</h1>       if is_valid_url(url):<br>
+           response = requests.get(url)<br>
+           return response.content<br>
+       else:<br>
+           raise ValueError("URL no válida")<br>
 <br>
-   content = safe_request(user_input)  <h1>Llamar a la función segura</h1>   </code></pre>
+   content = safe_request(user_input)  <h1>Realizar solicitud de manera segura</h1>   </code></pre>
 <br>
-<h3>Hallazgo #9: Secreto o Credencial Expuesta (OWASP-A02-HARDCODED-SECRET)</h3>
-1. <strong>Explicación</strong>: La exposición de secretos en el código puede permitir a un atacante acceder a sistemas y datos sensibles.<br>
-<br>
-2. <strong>Código corregido</strong>:<br>
+<h3>Hallazgo #9: Secreto o Credencial Expuesta</h3>1. <strong>Explicación</strong>: Incluir secretos o credenciales directamente en el código puede llevar a su exposición, permitiendo a un atacante acceder a sistemas protegidos.
+   <br>
+2. <strong>Código Corregido</strong>:<br>
    <pre><code>javascript<br>
-   // Remover la clave del código y cargarla desde un entorno seguro<br>
-   const apiKey = process.env.API_KEY;  // Cargar desde variables de entorno<br>
+   // Mover la clave API a un archivo de configuración o variable de entorno<br>
+   const apiKey = process.env.API_KEY;  // Usar variable de entorno<br>
    <pre><code><br>
-<h3>Hallazgo #10: Ejecución Dinámica de Código (Code Injection) (OWASP-A03-CODE-INJECTION)</h3>
-1. <strong>Explicación</strong>: Al igual que en los hallazgos anteriores, el uso de <code>eval()</code> permite la ejecución de código arbitrario, lo que puede ser explotado por un atacante.<br>
-<br>
-2. <strong>Código corregido</strong>:<br>
+<h3>Hallazgo #10: Ejecución Dinámica de Código (Code Injection)</h3>1. <strong>Explicación</strong>: Similar a los hallazgos anteriores que involucran <code>eval()</code>, esto permite la ejecución de código arbitrario, lo que puede ser explotado por un atacante.
+   <br>
+2. <strong>Código Corregido</strong>:<br>
    </code></pre>javascript<br>
-   // Evitar el uso de eval() y utilizar alternativas seguras<br>
+   // Evitar el uso de eval() y usar alternativas seguras<br>
    function safeEval(expression) {<br>
        // Implementar lógica segura para evaluar expresiones<br>
-       return new Function('return ' + expression)();  // Ejemplo de uso seguro<br>
+       return new Function('return ' + expression)();  // Usar Function constructor con cuidado<br>
    }<br>
 <br>
    const result = safeEval(userInput);  // Llamar a la función segura<br>
    </code></pre>
 <br>
-Estos cambios propuestos ayudan a mitigar las vulnerabilidades identificadas y a mejorar la seguridad general de la aplicación.<br></div>
+Estos cambios ayudarán a mitigar las vulnerabilidades identificadas y a mejorar la seguridad general de la aplicación.<br></div>
             </div>
         </div>
     </div>
